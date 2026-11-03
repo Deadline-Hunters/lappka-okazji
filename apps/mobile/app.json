@@ -20,6 +20,19 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Łappka Okazji używa Twojej lokalizacji, żeby pokazać okazje w pobliżu."
+        }
+      ]
+    ],
+    "scheme": "lappkaokazji",
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }
