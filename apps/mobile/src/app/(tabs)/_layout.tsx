@@ -8,11 +8,15 @@ type IconName = ComponentProps<typeof Ionicons>["name"];
 
 function tabIcon(name: IconName) {
   return ({ color, size }: { color: unknown; size: number }) => (
-    <Ionicons name={name} size={size} color={typeof color === "string" ? color : undefined} />
+    <Ionicons
+      name={name}
+      size={size}
+      color={typeof color === "string" ? color : undefined}
+    />
   );
 }
 
-// Szkielet nawigacji z KAN-11: Mapa · Okazje · Kupony · Obserwowane · Profil.
+// Navigation skeleton from KAN-11: Map · Deals · Coupons · Watchlist · Profile.
 export default function TabsLayout() {
   return (
     <Tabs
@@ -23,11 +27,33 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Mapa", headerTitle: "Łappka Okazji", tabBarIcon: tabIcon("map-outline") }} />
-      <Tabs.Screen name="okazje" options={{ title: "Okazje", tabBarIcon: tabIcon("flame-outline") }} />
-      <Tabs.Screen name="kupony" options={{ title: "Kupony", tabBarIcon: tabIcon("ticket-outline") }} />
-      <Tabs.Screen name="obserwowane" options={{ title: "Obserwowane", tabBarIcon: tabIcon("bookmark-outline") }} />
-      <Tabs.Screen name="profil" options={{ title: "Profil", tabBarIcon: tabIcon("person-outline") }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Mapa",
+          headerTitle: "Łappka Okazji",
+          tabBarIcon: tabIcon("map-outline"),
+        }}
+      />
+      <Tabs.Screen
+        name="deals"
+        options={{ title: "Okazje", tabBarIcon: tabIcon("flame-outline") }}
+      />
+      <Tabs.Screen
+        name="coupons"
+        options={{ title: "Kupony", tabBarIcon: tabIcon("ticket-outline") }}
+      />
+      <Tabs.Screen
+        name="watchlist"
+        options={{
+          title: "Obserwowane",
+          tabBarIcon: tabIcon("bookmark-outline"),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: "Profil", tabBarIcon: tabIcon("person-outline") }}
+      />
     </Tabs>
   );
 }

@@ -5,7 +5,7 @@ import type { LatLng } from "@/lib/geo";
 
 export type LocationStatus = "loading" | "granted" | "denied" | "unavailable";
 
-// Bez sygnału GPS (np. w budynku) getCurrentPositionAsync potrafi czekać w nieskończoność.
+// Without a GPS signal (e.g. indoors) getCurrentPositionAsync can wait forever.
 const POSITION_TIMEOUT_MS = 10_000;
 
 function toLatLng(position: Location.LocationObject): LatLng {
@@ -37,7 +37,7 @@ export function useUserLocation() {
         return null;
       }
 
-      // Ostatnia znana pozycja jest dostępna od razu - pokazujemy ją, zanim przyjdzie dokładniejsza.
+      // The last known position is available immediately - show it before a more accurate one arrives.
       const lastKnown = await Location.getLastKnownPositionAsync();
       if (lastKnown) {
         setLocation(toLatLng(lastKnown));

@@ -21,7 +21,7 @@ function formatTime(iso: string) {
   return `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-// Podgląd okazji po kliknięciu markera. Pełny bottom sheet z głosowaniem - KAN-18 / KAN-17.
+// Deal preview shown after tapping a marker. Full bottom sheet with voting - KAN-18 / KAN-17.
 export function DealPreviewCard({ deal, userLocation, onClose }: Props) {
   const category = CATEGORIES[deal.category];
   const discount = discountPercent(deal);

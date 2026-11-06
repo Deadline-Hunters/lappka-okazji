@@ -35,7 +35,7 @@ export const CATEGORIES: Record<
   rozrywka: { label: "Rozrywka", emoji: "🎟️", color: "#E07B1A" },
   inne: { label: "Inne", emoji: "🛍️", color: "#8E8A96" },
 };
-// wstępnie dałem godzine, można to obgadać
+// Set to one hour for now, open for discussion.
 const FRESH_THRESHOLD_MS = 60 * 60 * 1000;
 
 export function isFresh(deal: Deal, now = Date.now()) {

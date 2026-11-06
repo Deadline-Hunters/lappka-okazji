@@ -3,7 +3,7 @@ export type LatLng = {
   longitude: number;
 };
 
-// Rynek Główny w Krakowie - domyślny punkt, gdy brak zgody na lokalizację.
+// Main Market Square in Kraków - default point when location permission is missing.
 export const DEFAULT_CENTER: LatLng = { latitude: 50.0617, longitude: 19.9373 };
 
 const EARTH_RADIUS_M = 6_371_000;

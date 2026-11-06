@@ -7,7 +7,7 @@ type Props = {
   ticket: string;
 };
 
-// Tymczasowy ekran dla zakładek, które nie mają jeszcze implementacji.
+// Temporary screen for tabs that aren't implemented yet.
 export function PlaceholderScreen({ title, ticket }: Props) {
   return (
     <View style={styles.container}>

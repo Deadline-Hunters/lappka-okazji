@@ -8,14 +8,14 @@ import type { LatLng } from "@/lib/geo";
 
 import type { CameraTarget, MapMarker } from "./types";
 
-// Komponent DOM (Expo "use dom"): ten plik działa w WebView na mobile i jako zwykły komponent na webie.
-// Mapa: MapLibre GL JS + wektorowe kafelki OpenFreeMap (dane OSM, bez klucza i limitów).
-// Atrybucję (OpenFreeMap, OpenMapTiles, OpenStreetMap) MapLibre dodaje automatycznie ze stylu.
+// DOM component (Expo "use dom"): this file runs in a WebView on mobile and as a regular component on web.
+// Map: MapLibre GL JS + OpenFreeMap vector tiles (OSM data, no API key, no limits).
+// MapLibre adds the attribution (OpenFreeMap, OpenMapTiles, OpenStreetMap) automatically from the style.
 const STYLE_URL = "https://tiles.openfreemap.org/styles/bright";
 
-// MapLibre ładujemy z CDN zamiast bundlować przez Metro: Babel wstrzykuje helpery do kodu biblioteki,
-// a MapLibre tworzy z tego kodu Web Workera (blob), w którym helperów nie ma -> kafelki się nie rysują.
-// Paczka npm "maplibre-gl" jest w projekcie tylko dla typów.
+// MapLibre is loaded from a CDN instead of bundled by Metro: Babel injects helpers into the library code,
+// and MapLibre builds a Web Worker (blob) from that code where the helpers don't exist -> no tiles render.
+// The "maplibre-gl" npm package is in the project for types only.
 const MAPLIBRE_VERSION = "5.24.0";
 const MAPLIBRE_JS = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`;
 const MAPLIBRE_JS_SRI =
@@ -133,7 +133,7 @@ export default function DealsMap({
   onOpenUrl,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // Mapa w stanie (nie w refie), żeby efekty markerów/kamery uruchomiły się, gdy MapLibre się załaduje.
+  // Map kept in state (not a ref) so the marker/camera effects run once MapLibre has loaded.
   const [lib, setLib] = useState<MapLibre | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const markerRefs = useRef(
@@ -141,7 +141,7 @@ export default function DealsMap({
   );
   const userMarkerRef = useRef<maplibregl.Marker | null>(null);
 
-  // Callbacki w refie, żeby handlery mapy nie musiały się przepinać przy każdym renderze.
+  // Callbacks kept in a ref so the map handlers don't need re-binding on every render.
   const callbacks = useRef({ onMarkerPress, onMapPress, onOpenUrl });
   callbacks.current = { onMarkerPress, onMapPress, onOpenUrl };
 
@@ -149,7 +149,7 @@ export default function DealsMap({
     let cancelled = false;
     let created: maplibregl.Map | null = null;
 
-    // Linki (np. atrybucja) otwieramy w przeglądarce - nawigacja w WebView podmieniłaby mapę.
+    // Links (e.g. attribution) open in the browser - navigating inside the WebView would replace the map.
     function handleLinkClick(event: MouseEvent) {
       const link = (event.target as Element | null)?.closest?.("a");
       if (link && link.href.startsWith("http")) {
@@ -172,7 +172,7 @@ export default function DealsMap({
           attributionControl: { compact: false },
         });
         created.on("click", (event) => {
-          // Klik w marker obsługuje sam marker.
+          // Marker clicks are handled by the marker itself.
           if (
             (event.originalEvent.target as Element | null)?.closest?.(".marker")
           ) {
@@ -188,7 +188,7 @@ export default function DealsMap({
         });
 
         const map = created;
-        // Styl domyślnie pokazuje nazwy angielskie ("Krakow", "Cloth Hall") - wolimy polskie.
+        // The style shows English names by default ("Krakow", "Cloth Hall") - we want Polish ones.
         map.on("style.load", () => {
           for (const layer of map.getStyle().layers) {
             if (
@@ -203,8 +203,8 @@ export default function DealsMap({
             }
           }
         });
-        // Część ikon ze stylu OpenFreeMap nie istnieje w jego sprite - wstawiamy pusty obrazek,
-        // żeby nie zalewać logów ostrzeżeniami.
+        // Some icons referenced by the OpenFreeMap style are missing from its sprite - add a blank image
+        // so the logs aren't flooded with warnings.
         map.on("styleimagemissing", (event) => {
           if (!map.hasImage(event.id)) {
             map.addImage(event.id, {
@@ -225,7 +225,7 @@ export default function DealsMap({
       document.removeEventListener("click", handleLinkClick, true);
       created?.remove();
     };
-    // Mapę tworzymy raz; początkowy środek i zoom są potrzebne tylko przy starcie.
+    // The map is created once; the initial center and zoom only matter at startup.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -290,7 +290,7 @@ export default function DealsMap({
       zoom: camera.zoom ?? map.getZoom(),
       duration: 600,
     });
-    // Animujemy tylko przy nowym celu (nowe id) albo gdy mapa właśnie powstała.
+    // Animate only for a new target (new id) or when the map has just been created.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, camera?.id]);
 

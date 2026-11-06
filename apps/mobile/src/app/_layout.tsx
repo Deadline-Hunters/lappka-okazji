@@ -2,9 +2,9 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
 
-// Błąd w Expo SDK 58 (expo/build/dom/webview-wrapper.js): przy pierwszym renderze komponentu DOM
-// wysyła propsy do WebView, zanim natywny widok istnieje, i nie łapie odrzuconej obietnicy.
-// Expo samo wysyła propsy ponownie po załadowaniu (DOM_READY), więc nic nie ginie - to tylko szum w dev.
+// Expo SDK 58 bug (expo/build/dom/webview-wrapper.js): on a DOM component's first render it sends
+// props to the WebView before the native view exists and doesn't catch the rejected promise.
+// Expo re-sends the props once loaded (DOM_READY), so nothing is lost - it's just dev noise.
 LogBox.ignoreLogs(["DomWebView.injectJavaScript"]);
 
 export default function RootLayout() {

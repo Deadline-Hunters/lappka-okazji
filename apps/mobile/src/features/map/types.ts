@@ -10,8 +10,8 @@ export type MapMarker = {
   fresh?: boolean;
 };
 
-// Cel kamery przekazywany propsem - zmiana `id` uruchamia animację do tego punktu.
-// (DOM components nie wywołują niezawodnie metod przez ref, więc sterujemy mapą propsami.)
+// Camera target passed as a prop - changing `id` triggers an animation to this point.
+// (DOM components don't reliably call methods through a ref, so the map is driven by props.)
 export type CameraTarget = LatLng & {
   zoom?: number;
   id: number;

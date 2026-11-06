@@ -1,7 +1,8 @@
 import type { Deal } from "./types";
 
-// Dane testowe do czasu podpięcia bazy (KAN-3 / KAN-19).
-const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+// Test data until the database is connected (KAN-3 / KAN-19).
+const minutesAgo = (minutes: number) =>
+  new Date(Date.now() - minutes * 60_000).toISOString();
 
 const todayAt = (hour: number) => {
   const date = new Date();

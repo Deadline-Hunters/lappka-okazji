@@ -48,7 +48,7 @@ export function MapScreen() {
     [deals],
   );
 
-  // Po pierwszym ustaleniu pozycji centrujemy mapę na użytkowniku.
+  // Center the map on the user once their position is first known.
   useEffect(() => {
     if (location && !hasCenteredOnUser.current) {
       hasCenteredOnUser.current = true;
@@ -56,7 +56,7 @@ export function MapScreen() {
     }
   }, [location, flyTo]);
 
-  // Callbacki przekazywane do komponentu DOM muszą być asynchroniczne.
+  // Callbacks passed to a DOM component must be async.
   const handleMarkerPress = useCallback(
     async (id: string) => {
       setSelectedDealId(id);
@@ -73,7 +73,7 @@ export function MapScreen() {
   }, []);
 
   const handleRecenter = useCallback(async () => {
-    // Najpierw od razu na znaną pozycję, potem poprawiamy, gdy przyjdzie świeża.
+    // Jump to the known position right away, then refine when a fresh one arrives.
     flyTo(location ?? DEFAULT_CENTER, USER_ZOOM);
     const fresh = await refresh();
     if (fresh) {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.lg,
     right: spacing.lg,
-    // Nad paskiem atrybucji OSM - polityka kafelków zabrania jej zasłaniania.
+    // Above the OSM attribution bar - the tile policy forbids covering it.
     bottom: spacing.lg + 20,
   },
 });

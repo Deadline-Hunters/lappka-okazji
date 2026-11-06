@@ -1,4 +1,4 @@
-// Podstawowe tokeny na bazie makiet (Figma). Do rozbudowy w KAN-11.
+// Basic tokens based on the Figma mockups. To be extended in KAN-11.
 export const colors = {
   background: "#F7F5FB",
   surface: "#FFFFFF",
