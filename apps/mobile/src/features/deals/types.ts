@@ -1,12 +1,7 @@
 import type { LatLng } from "@/lib/geo";
 
 export type DealCategory =
-  | "jedzenie"
-  | "kawa"
-  | "moda"
-  | "elektronika"
-  | "rozrywka"
-  | "inne";
+  "jedzenie" | "kawa" | "moda" | "elektronika" | "rozrywka" | "inne";
 
 export type Deal = {
   id: string;
