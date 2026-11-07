@@ -9,6 +9,8 @@
   "scripts": {
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "prepare": "husky",
+    "typecheck": "npm run typecheck --workspace=@lappka-okazji/mobile",
     "mobile": "npm run start --workspace=@lappka-okazji/mobile",
     "mobile:android": "npm run android --workspace=@lappka-okazji/mobile",
     "mobile:ios": "npm run ios --workspace=@lappka-okazji/mobile",
@@ -19,6 +21,8 @@
     "supabase:reset": "supabase db reset"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.9.10",
     "supabase": "^2.122.0"
   },
@@ -26,5 +30,8 @@
   "engines": {
     "node": ">=24",
     "npm": ">=10"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc}": "prettier --check"
   }
 }
