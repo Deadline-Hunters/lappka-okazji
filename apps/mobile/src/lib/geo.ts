@@ -17,7 +17,9 @@ export function distanceInMeters(a: LatLng, b: LatLng) {
   const dLng = toRadians(b.longitude - a.longitude);
   const h =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(a.latitude)) * Math.cos(toRadians(b.latitude)) * Math.sin(dLng / 2) ** 2;
+    Math.cos(toRadians(a.latitude)) *
+      Math.cos(toRadians(b.latitude)) *
+      Math.sin(dLng / 2) ** 2;
 
   return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
 }
