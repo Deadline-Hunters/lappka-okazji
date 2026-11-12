@@ -1,18 +1,10 @@
 import { useMemo, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  Keyboard,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useUserLocation } from "@/features/map/useUserLocation";
 import { DEFAULT_CENTER, distanceInMeters } from "@/lib/geo";
-import { colors, radius, spacing } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 import { DealCard } from "./components/DealCard";
 import { DealsLocationBanner } from "./components/DealsLocationBanner";
@@ -102,36 +94,6 @@ export function DealsScreen() {
     }
   };
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <DealsTopBar
-        onNotificationPress={() =>
-          Alert.alert("Powiadomienia", "Brak nowych powiadomień.")
-        }
-        onProfilePress={() =>
-          Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
-        }
-      />
-      <DealsSearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onFilterPress={() => {
-          Alert.alert(
-            "Filtry",
-            "Filtrowanie zaawansowane (kategorie, widełki cenowe) w przygotowaniu.",
-          );
-        }}
-      />
-      <DealsSortPills selected={sortBy} onSelect={setSortBy} />
-      <DealsLocationBanner
-        city="Kraków"
-        district="Stare Miasto"
-        radiusMeters={500}
-        dealsCount={filteredAndSortedDeals.length}
-      />
-    </View>
-  );
-
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyTitle}>Brak okazji</Text>
@@ -144,6 +106,30 @@ export function DealsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Pasek górny, wyszukiwarka i filtry na stałe u góry */}
+      <View style={styles.headerContainer}>
+        <DealsTopBar
+          onNotificationPress={() =>
+            Alert.alert("Powiadomienia", "Brak nowych powiadomień.")
+          }
+          onProfilePress={() =>
+            Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
+          }
+        />
+        <DealsSearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFilterPress={() => {
+            Alert.alert(
+              "Filtry",
+              "Filtrowanie zaawansowane (kategorie, widełki cenowe) w przygotowaniu.",
+            );
+          }}
+        />
+        <DealsSortPills selected={sortBy} onSelect={setSortBy} />
+      </View>
+
+      {/* Przewijalna lista kafelków */}
       <FlatList
         data={filteredAndSortedDeals}
         keyExtractor={(item) => item.id}
@@ -154,16 +140,20 @@ export function DealsScreen() {
               userLocation={location}
               onBookmarkToggle={handleBookmarkToggle}
               onActionPress={handleActionPress}
-              onPress={() => {
-                Alert.alert(
-                  item.title,
-                  `${item.storeName} • ${item.address}\n\n${item.description ?? ""}`,
-                );
-              }}
+              onPress={() => handleActionPress(item)}
             />
           </View>
         )}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <View style={styles.bannerWrapper}>
+            <DealsLocationBanner
+              city="Kraków"
+              district="Stare Miasto"
+              radiusMeters={500}
+              dealsCount={filteredAndSortedDeals.length}
+            />
+          </View>
+        }
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={styles.listContent}
         refreshing={refreshing}
@@ -180,15 +170,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  listContent: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xxl * 2,
-    gap: spacing.md,
-  },
   headerContainer: {
+    paddingHorizontal: spacing.md,
     gap: spacing.sm,
     paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
+    backgroundColor: colors.background,
+  },
+  bannerWrapper: {
+    paddingBottom: spacing.sm,
+  },
+  listContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xxl * 2,
+    gap: spacing.md,
   },
   cardWrapper: {
     marginBottom: spacing.xs,
