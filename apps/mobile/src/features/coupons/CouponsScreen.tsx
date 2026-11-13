@@ -189,7 +189,11 @@ export function CouponsScreen() {
           pointerEvents="none"
           style={[styles.toast, { opacity: toastOpacity }]}
         >
-          <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+          <Ionicons
+            name="checkmark-circle"
+            size={16}
+            color={colors.textInverse}
+          />
           <Text style={styles.toastText}>{toastMessage}</Text>
         </Animated.View>
       ) : null}
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    backgroundColor: "rgba(22, 27, 46, 0.95)",
+    backgroundColor: colors.neutralDark,
     borderRadius: radius.pill,
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.lg,
@@ -259,6 +263,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 13,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: colors.textInverse,
   },
 });

@@ -69,7 +69,7 @@ export function CouponCard({
               <Ionicons
                 name="checkmark-circle"
                 size={11}
-                color={colors.couponBadgeFreshText}
+                color={colors.successText}
                 style={styles.badgeIcon}
               />
             </View>
@@ -114,11 +114,7 @@ export function CouponCard({
       {coupon.code ? (
         <View style={styles.codeRow}>
           <View style={styles.codeValue}>
-            <Ionicons
-              name="barcode-outline"
-              size={19}
-              color={colors.couponCodeText}
-            />
+            <Ionicons name="barcode-outline" size={19} color={colors.text} />
             <Text style={styles.codeText} numberOfLines={1}>
               {coupon.code}
             </Text>
@@ -129,7 +125,11 @@ export function CouponCard({
             accessibilityRole="button"
             accessibilityLabel="Kopiuj kod"
           >
-            <Ionicons name="copy-outline" size={15} color="#FFFFFF" />
+            <Ionicons
+              name="copy-outline"
+              size={15}
+              color={colors.textInverse}
+            />
             <Text style={styles.copyButtonText}>Kopiuj</Text>
           </Pressable>
         </View>
@@ -144,7 +144,7 @@ export function CouponCard({
           <Ionicons
             name="qr-code-outline"
             size={18}
-            color={colors.couponCodeText}
+            color={colors.text}
             style={styles.buttonIcon}
           />
           <Text style={styles.qrButtonText}>Pokaż kod QR</Text>
@@ -161,7 +161,7 @@ export function CouponCard({
             <Ionicons
               name={coupon.action.icon}
               size={17}
-              color="#FFFFFF"
+              color={colors.textInverse}
               style={styles.buttonIcon}
             />
           ) : null}
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   validityPill: {
     maxWidth: 165,
     flexShrink: 0,
-    backgroundColor: colors.couponBadgeValidityBg,
+    backgroundColor: colors.surfaceMuted,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.pill,
@@ -257,13 +257,13 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: "700",
     lineHeight: 13,
-    color: colors.couponBadgeValidityText,
+    color: colors.textMuted,
   },
   activatedPill: {
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.couponBadgeFreshBg,
+    backgroundColor: colors.successSoft,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.pill,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: "700",
     lineHeight: 13,
-    color: colors.couponBadgeFreshText,
+    color: colors.successText,
   },
   badgeIcon: {
     marginLeft: 3,
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   currentPrice: {
     fontSize: 16,
     fontWeight: "800",
-    color: colors.priceHighlight,
+    color: colors.price,
   },
   oldPrice: {
     fontSize: 13,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
   },
   discountPill: {
-    backgroundColor: colors.badgeDiscountBg,
+    backgroundColor: colors.highlight,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.pill,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   discountPillText: {
     fontSize: 12,
     fontWeight: "800",
-    color: colors.badgeDiscountText,
+    color: colors.highlightText,
   },
   description: {
     marginTop: spacing.sm,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     minHeight: 50,
     borderRadius: radius.pill,
-    backgroundColor: colors.couponCodeBg,
+    backgroundColor: colors.surfaceMuted,
     paddingLeft: spacing.md,
     paddingRight: 5,
     paddingVertical: 5,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
     letterSpacing: 0.6,
-    color: colors.couponCodeText,
+    color: colors.text,
   },
   copyButton: {
     flexDirection: "row",
@@ -370,13 +370,13 @@ const styles = StyleSheet.create({
   copyButtonText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: colors.textInverse,
   },
   qrButton: {
     marginTop: spacing.md,
     minHeight: 48,
     borderRadius: radius.pill,
-    backgroundColor: colors.couponCodeBg,
+    backgroundColor: colors.surfaceMuted,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   qrButtonText: {
     fontSize: 14,
     fontWeight: "800",
-    color: colors.couponCodeText,
+    color: colors.text,
   },
   actionButton: {
     marginTop: spacing.md,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: colors.textInverse,
   },
   buttonIcon: {
     marginRight: 7,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     minHeight: 42,
     borderRadius: radius.pill,
-    backgroundColor: colors.couponSurfaceMuted,
+    backgroundColor: colors.surfaceMuted,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -34,9 +34,7 @@ export function CouponsFilterPills({ selected, onSelect }: Props) {
             <Ionicons
               name={isActive ? "radio-button-on" : "radio-button-off"}
               size={15}
-              color={
-                isActive ? colors.activeFilterText : colors.inactiveFilterText
-              }
+              color={isActive ? colors.textInverse : colors.text}
               style={styles.icon}
             />
             <Text
@@ -69,10 +67,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   pillActive: {
-    backgroundColor: colors.activeFilterBg,
+    backgroundColor: colors.neutralDark,
   },
   pillInactive: {
-    backgroundColor: colors.inactiveFilterBg,
+    backgroundColor: colors.surfaceMuted,
   },
   icon: {
     marginRight: 5,
@@ -82,9 +80,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   labelActive: {
-    color: colors.activeFilterText,
+    color: colors.textInverse,
   },
   labelInactive: {
-    color: colors.inactiveFilterText,
+    color: colors.text,
   },
 });

@@ -69,7 +69,7 @@ export function CouponQrModal({ coupon, onClose }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(22, 17, 28, 0.55)",
+    backgroundColor: colors.backdrop,
     alignItems: "center",
     justifyContent: "center",
     padding: spacing.xl,
@@ -111,14 +111,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: radius.pill,
-    backgroundColor: colors.couponSurfaceMuted,
+    backgroundColor: colors.surfaceMuted,
     alignItems: "center",
     justifyContent: "center",
   },
   qrWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.couponQrSurface,
+    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.lg,
     padding: spacing.md,
   },
@@ -140,6 +140,6 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: colors.textInverse,
   },
 });

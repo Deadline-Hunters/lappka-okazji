@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.badgeDiscountBg,
+    backgroundColor: colors.highlight,
     borderWidth: 1.5,
     borderColor: colors.surface,
   },

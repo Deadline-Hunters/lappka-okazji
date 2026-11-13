@@ -18,8 +18,8 @@ export function CouponQrCode({ value, size = 176 }: Props) {
       <QRCode
         value={value}
         size={size - 28}
-        color={colors.couponQrModule}
-        backgroundColor={colors.couponQrTile}
+        color={colors.neutralDark}
+        backgroundColor={colors.surface}
         ecl="M"
       />
     </View>
@@ -28,7 +28,7 @@ export function CouponQrCode({ value, size = 176 }: Props) {
 
 const styles = StyleSheet.create({
   tile: {
-    backgroundColor: colors.couponQrTile,
+    backgroundColor: colors.surface,
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
