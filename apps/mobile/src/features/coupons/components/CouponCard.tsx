@@ -10,7 +10,6 @@ type Props = {
   coupon: Coupon;
   onCopyCode?: (coupon: Coupon) => void;
   onShowQr?: (coupon: Coupon) => void;
-  onActivate?: (coupon: Coupon) => void;
   onDetailsPress?: (coupon: Coupon) => void;
 };
 
@@ -29,7 +28,6 @@ export function CouponCard({
   coupon,
   onCopyCode,
   onShowQr,
-  onActivate,
   onDetailsPress,
 }: Props) {
   const validityLabel = formatValidity(coupon.validUntil);
@@ -63,18 +61,6 @@ export function CouponCard({
               </View>
             ) : null}
           </View>
-
-          {coupon.isActivated ? (
-            <View style={styles.activatedPill}>
-              <Text style={styles.activatedPillText}>Aktywowany</Text>
-              <Ionicons
-                name="checkmark-circle"
-                size={11}
-                color={colors.successText}
-                style={styles.badgeIcon}
-              />
-            </View>
-          ) : null}
 
           <Text style={styles.categoryLabel}>{coupon.categoryLabel}</Text>
         </View>
@@ -136,15 +122,6 @@ export function CouponCard({
           icon="qr-code-outline"
           variant="secondary"
           onPress={() => onShowQr?.(coupon)}
-          style={styles.cardButton}
-        />
-      ) : null}
-
-      {coupon.action && !coupon.isActivated ? (
-        <Button
-          label={coupon.action.label}
-          icon={coupon.action.icon}
-          onPress={() => onActivate?.(coupon)}
           style={styles.cardButton}
         />
       ) : null}
@@ -232,24 +209,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     lineHeight: 13,
     color: colors.textMuted,
-  },
-  activatedPill: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.successSoft,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
-  activatedPillText: {
-    fontSize: 10.5,
-    fontWeight: "700",
-    lineHeight: 13,
-    color: colors.successText,
-  },
-  badgeIcon: {
-    marginLeft: 3,
   },
   title: {
     marginTop: spacing.md,

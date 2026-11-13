@@ -21,7 +21,6 @@ type ToastState = {
 
 export function CouponsScreen() {
   const insets = useSafeAreaInsets();
-  const [coupons, setCoupons] = useState<Coupon[]>(MOCK_COUPONS);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<CouponFilter>("all");
   const [qrCoupon, setQrCoupon] = useState<Coupon | null>(null);
@@ -38,7 +37,7 @@ export function CouponsScreen() {
 
   const filteredCoupons = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    let result = coupons;
+    let result = MOCK_COUPONS;
 
     if (query) {
       result = result.filter((coupon) =>
@@ -55,8 +54,6 @@ export function CouponsScreen() {
     }
 
     switch (filter) {
-      case "activated":
-        return result.filter((coupon) => coupon.isActivated);
       case "ending_soon":
         return result.filter((coupon) => isEndingSoon(coupon));
       case "code":
@@ -66,7 +63,7 @@ export function CouponsScreen() {
       default:
         return result;
     }
-  }, [coupons, searchQuery, filter]);
+  }, [searchQuery, filter]);
 
   const handleCopyCode = async (coupon: Coupon) => {
     if (!coupon.code) return;
@@ -75,21 +72,6 @@ export function CouponsScreen() {
       android: { isSensitive: true },
     });
     showToast(`Skopiowano kod ${coupon.code}`);
-  };
-
-  const handleActivate = (coupon: Coupon) => {
-    setCoupons((current) =>
-      current.map((item) =>
-        item.id === coupon.id
-          ? { ...item, isActivated: true, action: undefined }
-          : item,
-      ),
-    );
-    Alert.alert(
-      coupon.brandName,
-      "Zniżka została aktywowana. Pokaż ten ekran lub ważną legitymację studencką przy kasie.",
-      [{ text: "OK" }],
-    );
   };
 
   const handleDetailsPress = (coupon: Coupon) => {
@@ -140,7 +122,6 @@ export function CouponsScreen() {
             coupon={item}
             onCopyCode={handleCopyCode}
             onShowQr={setQrCoupon}
-            onActivate={handleActivate}
             onDetailsPress={handleDetailsPress}
           />
         )}

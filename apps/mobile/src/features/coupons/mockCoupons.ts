@@ -38,8 +38,7 @@ export const MOCK_COUPONS: Coupon[] = [
     oldPrice: 41,
     title: "Duża pizza dla studenta",
     description:
-      "Aktywowana oferta: wybierz dowolną dużą pizzę z klasycznego menu i zapłać studencką cenę.",
-    isActivated: true,
+      "Wybierz dowolną dużą pizzę z klasycznego menu i zapłać studencką cenę.",
     validUntil: daysFromNow(12),
     code: "PIZZA-STUDENT30",
     qrCode: "PIZZA-STUDENT30",
@@ -88,9 +87,5 @@ export const MOCK_COUPONS: Coupon[] = [
       "Obowiązuje na wszystkie seanse 2D z ważną legitymacją studencką.",
     validUntil: daysFromNow(30),
     price: 18,
-    action: {
-      label: "Aktywuj zniżkę",
-      icon: "ticket-outline",
-    },
   },
 ];

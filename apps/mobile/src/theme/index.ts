@@ -12,10 +12,6 @@ export const colors = {
   primarySoft: "#FDEBDD",
   accent: "#2F6FDE",
   success: "#3C9A5F",
-  // Soft green background for positive status badges.
-  successSoft: "#DFF2C8",
-  // Green text and icons shown on successSoft.
-  successText: "#3F681C",
   danger: "#C0392B",
   // Attention-grabbing background for highlight badges such as discounts.
   highlight: "#E4F26B",

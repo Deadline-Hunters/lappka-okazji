@@ -1,17 +1,3 @@
-import type { Ionicons } from "@expo/vector-icons";
-import type { ComponentProps } from "react";
-
-/** Icon name from the Ionicons icon set. */
-export type IoniconName = ComponentProps<typeof Ionicons>["name"];
-
-/** Primary call-to-action displayed on a coupon card. */
-export type CouponAction = {
-  /** Button label, e.g. "Aktywuj zniżkę". */
-  label: string;
-  /** Optional icon shown before the label. */
-  icon?: IoniconName;
-};
-
 /** Affiliate coupon displayed in the Coupons tab. */
 export type Coupon = {
   /** Stable identifier of the coupon coming from the backend. */
@@ -39,8 +25,6 @@ export type Coupon = {
   /** Optional discount label, e.g. "-30%". */
   discountLabel?: string;
 
-  /** Whether the user has already activated this coupon. */
-  isActivated?: boolean;
   /** ISO date after which the coupon can no longer be used. */
   validUntil?: string;
 
@@ -48,16 +32,12 @@ export type Coupon = {
   code?: string;
   /** Optional payload encoded into the QR code popup. */
   qrCode?: string;
-
-  /** Optional primary action, e.g. activating the coupon. */
-  action?: CouponAction;
 };
 
-export type CouponFilter = "all" | "activated" | "ending_soon" | "code" | "qr";
+export type CouponFilter = "all" | "ending_soon" | "code" | "qr";
 
 export const COUPON_FILTERS: { id: CouponFilter; label: string }[] = [
   { id: "all", label: "Wszystkie" },
-  { id: "activated", label: "Aktywowane" },
   { id: "ending_soon", label: "Kończą się wkrótce" },
   { id: "code", label: "Z kodem" },
   { id: "qr", label: "Z kodem QR" },
