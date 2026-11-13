@@ -1,0 +1,38 @@
+name: Enforce Branch Promotion Flow
+on:
+  pull_request:
+    branches:
+      - main
+      - test
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  check-source-branch:
+    name: Verify PR source branch
+    runs-on: ubuntu-latest
+    if: >
+      (github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+      github.event.label.name == 'hotfix'
+    steps:
+      - name: Check labels and branch flow
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          if echo "$LABELS" | grep -q '"hotfix"'; then
+            echo "'hotfix' label detected — overruling branch promotion check ('$HEAD' -> '$BASE')."
+            exit 0
+          fi
+
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "test" ]; then
+            echo "Pull requests to 'main' must come from 'test' (attempted from '$HEAD'). Add the 'hotfix' label to override."
+            exit 1
+          fi
+
+          if [ "$BASE" = "test" ] && [ "$HEAD" != "develop" ]; then
+            echo "Pull requests to 'test' must come from 'develop' (attempted from '$HEAD'). Add the 'hotfix' label to override."
+            exit 1
+          fi
+
+          echo "Valid branch flow: '$HEAD' -> '$BASE'."
