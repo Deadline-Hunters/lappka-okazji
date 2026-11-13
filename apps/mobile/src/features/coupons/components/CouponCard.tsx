@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
+import { Button } from "@/components/Button";
 import { colors, radius, spacing } from "@/theme";
 
 import { formatPrice, type Coupon } from "../types";
@@ -119,69 +120,42 @@ export function CouponCard({
               {coupon.code}
             </Text>
           </View>
-          <Pressable
+          <Button
+            label="Kopiuj"
+            icon="copy-outline"
+            size="sm"
             onPress={() => onCopyCode?.(coupon)}
-            style={styles.copyButton}
-            accessibilityRole="button"
             accessibilityLabel="Kopiuj kod"
-          >
-            <Ionicons
-              name="copy-outline"
-              size={15}
-              color={colors.textInverse}
-            />
-            <Text style={styles.copyButtonText}>Kopiuj</Text>
-          </Pressable>
+          />
         </View>
       ) : null}
 
       {coupon.qrCode ? (
-        <Pressable
+        <Button
+          label="Pokaż kod QR"
+          icon="qr-code-outline"
+          variant="secondary"
           onPress={() => onShowQr?.(coupon)}
-          style={styles.qrButton}
-          accessibilityRole="button"
-        >
-          <Ionicons
-            name="qr-code-outline"
-            size={18}
-            color={colors.text}
-            style={styles.buttonIcon}
-          />
-          <Text style={styles.qrButtonText}>Pokaż kod QR</Text>
-        </Pressable>
+          style={styles.cardButton}
+        />
       ) : null}
 
       {coupon.action && !coupon.isActivated ? (
-        <Pressable
+        <Button
+          label={coupon.action.label}
+          icon={coupon.action.icon}
           onPress={() => onActivate?.(coupon)}
-          style={styles.actionButton}
-          accessibilityRole="button"
-        >
-          {coupon.action.icon ? (
-            <Ionicons
-              name={coupon.action.icon}
-              size={17}
-              color={colors.textInverse}
-              style={styles.buttonIcon}
-            />
-          ) : null}
-          <Text style={styles.actionButtonText}>{coupon.action.label}</Text>
-        </Pressable>
+          style={styles.cardButton}
+        />
       ) : null}
 
-      <Pressable
+      <Button
+        label="Szczegóły oferty"
+        icon="information-circle-outline"
+        variant="secondary"
         onPress={() => onDetailsPress?.(coupon)}
-        style={styles.detailsButton}
-        accessibilityRole="button"
-        hitSlop={6}
-      >
-        <Ionicons
-          name="information-circle-outline"
-          size={15}
-          color={colors.textMuted}
-        />
-        <Text style={styles.detailsButtonText}>Szczegóły oferty</Text>
-      </Pressable>
+        style={styles.cardButton}
+      />
     </View>
   );
 }
@@ -358,67 +332,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     color: colors.text,
   },
-  copyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: colors.primary,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  copyButtonText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: colors.textInverse,
-  },
-  qrButton: {
+  cardButton: {
     marginTop: spacing.md,
-    minHeight: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-  },
-  qrButtonText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: colors.text,
-  },
-  actionButton: {
-    marginTop: spacing.md,
-    minHeight: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.md,
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: colors.textInverse,
-  },
-  buttonIcon: {
-    marginRight: 7,
-  },
-  detailsButton: {
-    marginTop: spacing.md,
-    minHeight: 42,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: spacing.md,
-  },
-  detailsButtonText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.text,
   },
 });

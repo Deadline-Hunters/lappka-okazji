@@ -1,18 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Alert,
-  Animated,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTopBar } from "@/components/AppTopBar";
-import { colors, radius, spacing } from "@/theme";
+import { Toast } from "@/components/Toast";
+import { colors, spacing } from "@/theme";
 
 import { CouponCard } from "./components/CouponCard";
 import { CouponQrModal } from "./components/CouponQrModal";
@@ -21,7 +14,10 @@ import { CouponsSearchBar } from "./components/CouponsSearchBar";
 import { MOCK_COUPONS } from "./mockCoupons";
 import { isEndingSoon, type Coupon, type CouponFilter } from "./types";
 
-const TOAST_DURATION_MS = 1800;
+type ToastState = {
+  id: number;
+  message: string;
+};
 
 export function CouponsScreen() {
   const insets = useSafeAreaInsets();
@@ -29,44 +25,16 @@ export function CouponsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<CouponFilter>("all");
   const [qrCoupon, setQrCoupon] = useState<Coupon | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
 
-  const toastOpacity = useRef(new Animated.Value(0)).current;
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastId = useRef(0);
 
-  const showToast = useCallback(
-    (message: string) => {
-      if (toastTimer.current) {
-        clearTimeout(toastTimer.current);
-      }
+  const showToast = useCallback((message: string) => {
+    toastId.current += 1;
+    setToast({ id: toastId.current, message });
+  }, []);
 
-      setToastMessage(message);
-      toastOpacity.stopAnimation();
-      Animated.timing(toastOpacity, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
-
-      toastTimer.current = setTimeout(() => {
-        Animated.timing(toastOpacity, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished) setToastMessage(null);
-        });
-      }, TOAST_DURATION_MS);
-    },
-    [toastOpacity],
-  );
-
-  useEffect(
-    () => () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    },
-    [],
-  );
+  const hideToast = useCallback(() => setToast(null), []);
 
   const filteredCoupons = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -184,19 +152,11 @@ export function CouponsScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      {toastMessage ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.toast, { opacity: toastOpacity }]}
-        >
-          <Ionicons
-            name="checkmark-circle"
-            size={16}
-            color={colors.textInverse}
-          />
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </Animated.View>
-      ) : null}
+      <Toast
+        key={toast?.id ?? "toast"}
+        message={toast?.message ?? null}
+        onHide={hideToast}
+      />
 
       <CouponQrModal coupon={qrCoupon} onClose={() => setQrCoupon(null)} />
     </View>
@@ -210,7 +170,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl * 2,
+    paddingBottom: spacing.xl * 2,
     gap: spacing.lg,
   },
   header: {
@@ -224,7 +184,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   emptyContainer: {
-    paddingVertical: spacing.xxl * 2,
+    paddingVertical: spacing.xl * 2,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
@@ -240,29 +200,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.textMuted,
     textAlign: "center",
-  },
-  toast: {
-    position: "absolute",
-    bottom: spacing.xl,
-    alignSelf: "center",
-    maxWidth: "90%",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    backgroundColor: colors.neutralDark,
-    borderRadius: radius.pill,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.lg,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  toastText: {
-    flexShrink: 1,
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.textInverse,
   },
 });
