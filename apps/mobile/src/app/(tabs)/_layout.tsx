@@ -41,7 +41,11 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="coupons"
-        options={{ title: "Kupony", tabBarIcon: tabIcon("ticket-outline") }}
+        options={{
+          title: "Kupony",
+          headerShown: false,
+          tabBarIcon: tabIcon("ticket-outline"),
+        }}
       />
       <Tabs.Screen
         name="watchlist"

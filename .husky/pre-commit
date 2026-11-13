@@ -3,5 +3,5 @@
 set -e
 
 npm exec lint-staged
-git diff --check --cached
+git --no-pager diff --check --cached
 npm run typecheck
