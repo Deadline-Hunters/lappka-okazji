@@ -1,4 +1,4 @@
-import type { Coupon, CouponBadge, CouponBadgeVariant } from "./types";
+import type { Coupon } from "./types";
 
 // Test data until affiliate coupons are connected to the backend (KAN-15).
 const daysFromNow = (days: number) => {
@@ -8,25 +8,6 @@ const daysFromNow = (days: number) => {
   return date.toISOString();
 };
 
-const shortDate = (days: number) => {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  const day = `${date.getDate()}`.padStart(2, "0");
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  return `${day}.${month}`;
-};
-
-const validityBadge = (
-  days: number,
-  variant: CouponBadgeVariant = "fresh",
-): CouponBadge => ({
-  label:
-    variant === "fresh"
-      ? `Ważne jeszcze ${days} dni (do ${shortDate(days)})`
-      : `Ważne do ${shortDate(days)}`,
-  variant,
-});
-
 export const MOCK_COUPONS: Coupon[] = [
   {
     id: "coupon-costa",
@@ -35,12 +16,6 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F3EDE3",
     categoryLabel: "Kawiarnie stacjonarne",
-    partnerBadge: {
-      label: "Oficjalny Partner",
-      variant: "official",
-      icon: "star",
-    },
-    topBadge: validityBadge(4, "validity"),
     discountLabel: "-60%",
     price: 6,
     oldPrice: 15,
@@ -58,12 +33,6 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F6E2D8",
     categoryLabel: "Pizzerie • Dostawa i na miejscu",
-    partnerBadge: {
-      label: "Oficjalny Partner",
-      variant: "official",
-      icon: "star",
-    },
-    topBadge: validityBadge(12, "validity"),
     discountLabel: "-30%",
     price: 29,
     oldPrice: 41,
@@ -82,7 +51,6 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F6E8DE",
     categoryLabel: "Fast Food • Na miejscu i z odbiorem",
-    topBadge: validityBadge(3, "validity"),
     discountLabel: "-38%",
     price: 19.99,
     oldPrice: 32,
@@ -97,12 +65,6 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F3E3EC",
     categoryLabel: "Herbaciarnie • Na wynos",
-    partnerBadge: {
-      label: "Oficjalny Partner",
-      variant: "official",
-      icon: "star",
-    },
-    topBadge: validityBadge(9, "validity"),
     offerLabel: "2 za 1",
     discountLabel: "-50%",
     price: 17.9,
@@ -121,10 +83,6 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#EDE6F3",
     categoryLabel: "Kina wielosalowe • 2D & 3D",
-    topBadge: {
-      label: "Środy studenckie",
-      variant: "validity",
-    },
     title: "Bilet do kina w środy",
     description:
       "Obowiązuje na wszystkie seanse 2D z ważną legitymacją studencką.",

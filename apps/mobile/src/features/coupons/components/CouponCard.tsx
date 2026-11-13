@@ -3,12 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, radius, spacing } from "@/theme";
 
-import {
-  formatPrice,
-  type Coupon,
-  type CouponBadge,
-  type CouponBadgeVariant,
-} from "../types";
+import { formatPrice, type Coupon } from "../types";
 
 type Props = {
   coupon: Coupon;
@@ -18,48 +13,15 @@ type Props = {
   onDetailsPress?: (coupon: Coupon) => void;
 };
 
-const BADGE_COLORS: Record<
-  CouponBadgeVariant,
-  { background: string; text: string }
-> = {
-  official: {
-    background: colors.couponBadgeOfficialBg,
-    text: colors.couponBadgeOfficialText,
-  },
-  validity: {
-    background: colors.couponBadgeValidityBg,
-    text: colors.couponBadgeValidityText,
-  },
-  fresh: {
-    background: colors.couponBadgeFreshBg,
-    text: colors.couponBadgeFreshText,
-  },
-};
+function formatValidity(validUntil?: string) {
+  if (!validUntil) return null;
 
-const ACTIVATED_BADGE: CouponBadge = {
-  label: "Aktywowany",
-  variant: "fresh",
-  icon: "checkmark-circle",
-};
+  const date = new Date(validUntil);
+  if (Number.isNaN(date.getTime())) return null;
 
-function CouponBadgePill({ badge }: { badge: CouponBadge }) {
-  const palette = BADGE_COLORS[badge.variant];
-
-  return (
-    <View style={[styles.badge, { backgroundColor: palette.background }]}>
-      <Text style={[styles.badgeText, { color: palette.text }]}>
-        {badge.label}
-      </Text>
-      {badge.icon ? (
-        <Ionicons
-          name={badge.icon}
-          size={11}
-          color={palette.text}
-          style={styles.badgeIcon}
-        />
-      ) : null}
-    </View>
-  );
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  return `Ważne do ${day}.${month}`;
 }
 
 export function CouponCard({
@@ -69,6 +31,8 @@ export function CouponCard({
   onActivate,
   onDetailsPress,
 }: Props) {
+  const validityLabel = formatValidity(coupon.validUntil);
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -92,21 +56,22 @@ export function CouponCard({
         <View style={styles.headerInfo}>
           <View style={styles.brandTopRow}>
             <Text style={styles.brandName}>{coupon.brandName}</Text>
-            {coupon.topBadge ? (
-              <View style={styles.topBadge}>
-                <CouponBadgePill badge={coupon.topBadge} />
+            {validityLabel ? (
+              <View style={styles.validityPill}>
+                <Text style={styles.validityPillText}>{validityLabel}</Text>
               </View>
             ) : null}
           </View>
 
-          {coupon.partnerBadge || coupon.isActivated ? (
-            <View style={styles.badgesRow}>
-              {coupon.partnerBadge ? (
-                <CouponBadgePill badge={coupon.partnerBadge} />
-              ) : null}
-              {coupon.isActivated ? (
-                <CouponBadgePill badge={ACTIVATED_BADGE} />
-              ) : null}
+          {coupon.isActivated ? (
+            <View style={styles.activatedPill}>
+              <Text style={styles.activatedPillText}>Aktywowany</Text>
+              <Ionicons
+                name="checkmark-circle"
+                size={11}
+                color={colors.couponBadgeFreshText}
+                style={styles.badgeIcon}
+              />
             </View>
           ) : null}
 
@@ -267,12 +232,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 6,
   },
-  badgesRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 6,
-  },
   brandName: {
     flexShrink: 1,
     fontSize: 18,
@@ -286,23 +245,34 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 16,
   },
-  topBadge: {
+  validityPill: {
     maxWidth: 165,
     flexShrink: 0,
-    alignItems: "flex-end",
-  },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
+    backgroundColor: colors.couponBadgeValidityBg,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.pill,
   },
-  badgeText: {
+  validityPillText: {
     fontSize: 10.5,
     fontWeight: "700",
     lineHeight: 13,
+    color: colors.couponBadgeValidityText,
+  },
+  activatedPill: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.couponBadgeFreshBg,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  activatedPillText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    lineHeight: 13,
+    color: colors.couponBadgeFreshText,
   },
   badgeIcon: {
     marginLeft: 3,

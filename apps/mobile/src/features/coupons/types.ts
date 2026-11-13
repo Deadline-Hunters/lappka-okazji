@@ -1,48 +1,55 @@
 import type { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 
+/** Icon name from the Ionicons icon set. */
 export type IoniconName = ComponentProps<typeof Ionicons>["name"];
 
-export type CouponBadgeVariant = "official" | "validity" | "fresh";
-
-export type CouponBadge = {
-  label: string;
-  variant: CouponBadgeVariant;
-  icon?: IoniconName;
-};
-
+/** Primary call-to-action displayed on a coupon card. */
 export type CouponAction = {
+  /** Button label, e.g. "Aktywuj zniżkę". */
   label: string;
+  /** Optional icon shown before the label. */
   icon?: IoniconName;
 };
 
+/** Affiliate coupon displayed in the Coupons tab. */
 export type Coupon = {
+  /** Stable identifier of the coupon coming from the backend. */
   id: string;
+  /** Display name of the partner or brand. */
   brandName: string;
+  /** Optional URL of the brand logo image. */
   brandLogoUrl?: string;
+  /** Optional background color shown behind the logo while it loads. */
   brandLogoBackground?: string;
+  /** Human-readable category or context line, e.g. "Kawiarnie stacjonarne". */
   categoryLabel: string;
 
-  // Badge shown next to the brand name, e.g. "Oficjalny Partner".
-  partnerBadge?: CouponBadge;
-  // Badge anchored to the top-right corner, e.g. validity or weekly offer.
-  topBadge?: CouponBadge;
-
-  discountLabel?: string;
-  offerLabel?: string;
-  price?: number;
-  oldPrice?: number;
-
+  /** Short marketing title of the offer. */
   title: string;
+  /** Optional longer description of what the offer includes. */
   description?: string;
 
+  /** Optional offer type label, e.g. "2 za 1". */
+  offerLabel?: string;
+  /** Optional current price in PLN. */
+  price?: number;
+  /** Optional regular price in PLN, displayed struck through. */
+  oldPrice?: number;
+  /** Optional discount label, e.g. "-30%". */
+  discountLabel?: string;
+
+  /** Whether the user has already activated this coupon. */
   isActivated?: boolean;
+  /** ISO date after which the coupon can no longer be used. */
   validUntil?: string;
 
-  // Text code shown on the card and a separate payload for the QR popup.
+  /** Optional text code the user can show or type at checkout. */
   code?: string;
+  /** Optional payload encoded into the QR code popup. */
   qrCode?: string;
 
+  /** Optional primary action, e.g. activating the coupon. */
   action?: CouponAction;
 };
 

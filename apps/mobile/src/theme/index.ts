@@ -16,8 +16,6 @@ export const colors = {
   badgeDiscountBg: "#E4F26B",
   badgeDiscountText: "#384705",
   priceHighlight: "#99AA18",
-  couponBadgeOfficialBg: "#FBE7D8",
-  couponBadgeOfficialText: "#8B4A21",
   couponBadgeValidityBg: "#E8E4F2",
   couponBadgeValidityText: "#3B3550",
   couponBadgeFreshBg: "#DFF2C8",
