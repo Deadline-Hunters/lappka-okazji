@@ -92,31 +92,34 @@ export function CouponsScreen() {
 
   const filteredCoupons = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    let result = coupons;
 
-    if (query) {
-      result = result.filter((coupon) =>
-        [
+    return coupons.filter((coupon) => {
+      if (
+        query &&
+        ![
           coupon.brandName,
           coupon.title,
           coupon.description,
           coupon.categoryLabel,
+          coupon.discountLabel,
           coupon.code,
           coupon.qrCode,
-        ].some((value) => value?.toLowerCase().includes(query)),
-      );
-    }
+        ].some((value) => value?.toLowerCase().includes(query))
+      ) {
+        return false;
+      }
 
-    switch (filter) {
-      case "ending_soon":
-        return result.filter((coupon) => isEndingSoon(coupon));
-      case "code":
-        return result.filter((coupon) => Boolean(coupon.code));
-      case "qr":
-        return result.filter((coupon) => Boolean(coupon.qrCode));
-      default:
-        return result;
-    }
+      switch (filter) {
+        case "ending_soon":
+          return isEndingSoon(coupon);
+        case "code":
+          return Boolean(coupon.code);
+        case "qr":
+          return Boolean(coupon.qrCode);
+        default:
+          return true;
+      }
+    });
   }, [coupons, searchQuery, filter]);
 
   const handleCopyCode = async (code: string) => {
