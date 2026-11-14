@@ -8,7 +8,7 @@ import { formatPrice, type Coupon } from "../types";
 
 type Props = {
   coupon: Coupon;
-  onCopyCode?: (coupon: Coupon) => void;
+  onCopyCode?: (code: string) => void;
   onShowQr?: (coupon: Coupon) => void;
   onDetailsPress?: (coupon: Coupon) => void;
 };
@@ -22,6 +22,31 @@ function formatValidity(validUntil?: string) {
   const day = `${date.getDate()}`.padStart(2, "0");
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
   return `Ważne do ${day}.${month}`;
+}
+
+type CodeRowProps = {
+  code: string;
+  onCopyCode?: (code: string) => void;
+};
+
+function CouponCodeRow({ code, onCopyCode }: CodeRowProps) {
+  return (
+    <View style={styles.codeRow}>
+      <View style={styles.codeValue}>
+        <Ionicons name="barcode-outline" size={19} color={colors.text} />
+        <Text style={styles.codeText} numberOfLines={1}>
+          {code}
+        </Text>
+      </View>
+      <Button
+        label="Kopiuj"
+        icon="copy-outline"
+        size="sm"
+        onPress={() => onCopyCode?.(code)}
+        accessibilityLabel="Kopiuj kod"
+      />
+    </View>
+  );
 }
 
 export function CouponCard({
@@ -68,16 +93,10 @@ export function CouponCard({
 
       <Text style={styles.title}>{coupon.title}</Text>
 
-      {coupon.offerLabel ||
-      coupon.price != null ||
+      {coupon.price != null ||
       coupon.oldPrice != null ||
       coupon.discountLabel ? (
         <View style={styles.priceRow}>
-          {coupon.offerLabel ? (
-            <View style={styles.offerPill}>
-              <Text style={styles.offerPillText}>{coupon.offerLabel}</Text>
-            </View>
-          ) : null}
           {coupon.price != null ? (
             <Text style={styles.currentPrice}>{formatPrice(coupon.price)}</Text>
           ) : null}
@@ -99,21 +118,7 @@ export function CouponCard({
       ) : null}
 
       {coupon.code ? (
-        <View style={styles.codeRow}>
-          <View style={styles.codeValue}>
-            <Ionicons name="barcode-outline" size={19} color={colors.text} />
-            <Text style={styles.codeText} numberOfLines={1}>
-              {coupon.code}
-            </Text>
-          </View>
-          <Button
-            label="Kopiuj"
-            icon="copy-outline"
-            size="sm"
-            onPress={() => onCopyCode?.(coupon)}
-            accessibilityLabel="Kopiuj kod"
-          />
-        </View>
+        <CouponCodeRow code={coupon.code} onCopyCode={onCopyCode} />
       ) : null}
 
       {coupon.qrCode ? (
@@ -224,17 +229,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.sm,
     marginTop: spacing.xs,
-  },
-  offerPill: {
-    backgroundColor: colors.primarySoft,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-  },
-  offerPillText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colors.primaryDark,
   },
   currentPrice: {
     fontSize: 16,

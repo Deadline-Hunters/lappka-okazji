@@ -1,6 +1,14 @@
 import * as Clipboard from "expo-clipboard";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Alert,
+  AppState,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppTopBar } from "@/components/AppTopBar";
@@ -11,8 +19,10 @@ import { CouponCard } from "./components/CouponCard";
 import { CouponQrModal } from "./components/CouponQrModal";
 import { CouponsFilterPills } from "./components/CouponsFilterPills";
 import { CouponsSearchBar } from "./components/CouponsSearchBar";
-import { MOCK_COUPONS } from "./mockCoupons";
+import { fetchCoupons } from "./mockCoupons";
 import { isEndingSoon, type Coupon, type CouponFilter } from "./types";
+
+const BACKGROUND_REFRESH_DELAY_MS = 5 * 60 * 1000;
 
 type ToastState = {
   id: number;
@@ -21,12 +31,57 @@ type ToastState = {
 
 export function CouponsScreen() {
   const insets = useSafeAreaInsets();
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<CouponFilter>("all");
   const [qrCoupon, setQrCoupon] = useState<Coupon | null>(null);
+  const [qrVisible, setQrVisible] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const toastId = useRef(0);
+  const backgroundedAt = useRef<number | null>(null);
+
+  const loadCoupons = useCallback(async () => {
+    const nextCoupons = await fetchCoupons();
+    setCoupons(nextCoupons);
+  }, []);
+
+  useEffect(() => {
+    loadCoupons().finally(() => setIsLoading(false));
+  }, [loadCoupons]);
+
+  // Refresh stale data when the app has been in the background for a while.
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active") {
+        backgroundedAt.current ??= Date.now();
+        return;
+      }
+
+      const leftAt = backgroundedAt.current;
+      backgroundedAt.current = null;
+
+      if (
+        leftAt !== null &&
+        Date.now() - leftAt >= BACKGROUND_REFRESH_DELAY_MS
+      ) {
+        loadCoupons();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [loadCoupons]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadCoupons();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadCoupons]);
 
   const showToast = useCallback((message: string) => {
     toastId.current += 1;
@@ -37,7 +92,7 @@ export function CouponsScreen() {
 
   const filteredCoupons = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    let result = MOCK_COUPONS;
+    let result = coupons;
 
     if (query) {
       result = result.filter((coupon) =>
@@ -46,7 +101,6 @@ export function CouponsScreen() {
           coupon.title,
           coupon.description,
           coupon.categoryLabel,
-          coupon.offerLabel,
           coupon.code,
           coupon.qrCode,
         ].some((value) => value?.toLowerCase().includes(query)),
@@ -63,15 +117,16 @@ export function CouponsScreen() {
       default:
         return result;
     }
-  }, [searchQuery, filter]);
+  }, [coupons, searchQuery, filter]);
 
-  const handleCopyCode = async (coupon: Coupon) => {
-    if (!coupon.code) return;
+  const handleCopyCode = async (code: string) => {
+    await Clipboard.setStringAsync(code);
+    showToast(`Skopiowano kod ${code}`);
+  };
 
-    await Clipboard.setStringAsync(coupon.code, {
-      android: { isSensitive: true },
-    });
-    showToast(`Skopiowano kod ${coupon.code}`);
+  const handleShowQr = (coupon: Coupon) => {
+    setQrCoupon(coupon);
+    setQrVisible(true);
   };
 
   const handleDetailsPress = (coupon: Coupon) => {
@@ -81,26 +136,6 @@ export function CouponsScreen() {
       [{ text: "OK" }],
     );
   };
-
-  const listHeader = (
-    <View style={styles.header}>
-      <AppTopBar
-        subtitle="Kupony"
-        onNotificationPress={() =>
-          Alert.alert("Powiadomienia", "Brak nowych powiadomień.")
-        }
-        onProfilePress={() =>
-          Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
-        }
-      />
-
-      <Text style={styles.sectionTitle}>Kupony Partnerskie</Text>
-
-      <CouponsSearchBar value={searchQuery} onChangeText={setSearchQuery} />
-
-      <CouponsFilterPills selected={filter} onSelect={setFilter} />
-    </View>
-  );
 
   const listEmpty = (
     <View style={styles.emptyContainer}>
@@ -114,6 +149,19 @@ export function CouponsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <AppTopBar
+          subtitle="Kupony"
+          onProfilePress={() =>
+            Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
+          }
+        />
+
+        <CouponsSearchBar value={searchQuery} onChangeText={setSearchQuery} />
+
+        <CouponsFilterPills selected={filter} onSelect={setFilter} />
+      </View>
+
       <FlatList
         data={filteredCoupons}
         keyExtractor={(item) => item.id}
@@ -121,13 +169,20 @@ export function CouponsScreen() {
           <CouponCard
             coupon={item}
             onCopyCode={handleCopyCode}
-            onShowQr={setQrCoupon}
+            onShowQr={handleShowQr}
             onDetailsPress={handleDetailsPress}
           />
         )}
-        ListHeaderComponent={listHeader}
-        ListEmptyComponent={listEmpty}
+        ListEmptyComponent={isLoading ? undefined : listEmpty}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
@@ -139,7 +194,13 @@ export function CouponsScreen() {
         onHide={hideToast}
       />
 
-      <CouponQrModal coupon={qrCoupon} onClose={() => setQrCoupon(null)} />
+      {qrCoupon ? (
+        <CouponQrModal
+          coupon={qrCoupon}
+          visible={qrVisible}
+          onClose={() => setQrVisible(false)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -157,12 +218,8 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.md,
     paddingTop: spacing.xs,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    letterSpacing: -0.4,
-    color: colors.text,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   emptyContainer: {
     paddingVertical: spacing.xl * 2,

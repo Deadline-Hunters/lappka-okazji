@@ -16,13 +16,11 @@ export type Coupon = {
   /** Optional longer description of what the offer includes. */
   description?: string;
 
-  /** Optional offer type label, e.g. "2 za 1". */
-  offerLabel?: string;
   /** Optional current price in PLN. */
   price?: number;
   /** Optional regular price in PLN, displayed struck through. */
   oldPrice?: number;
-  /** Optional discount label, e.g. "-30%". */
+  /** Optional discount or offer label, e.g. "-30%" or "2 za 1". */
   discountLabel?: string;
 
   /** ISO date after which the coupon can no longer be used. */

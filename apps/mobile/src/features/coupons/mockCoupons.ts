@@ -8,7 +8,7 @@ const daysFromNow = (days: number) => {
   return date.toISOString();
 };
 
-export const MOCK_COUPONS: Coupon[] = [
+const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-costa",
     brandName: "Costa Coffee",
@@ -64,8 +64,7 @@ export const MOCK_COUPONS: Coupon[] = [
       "https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F3E3EC",
     categoryLabel: "Herbaciarnie • Na wynos",
-    offerLabel: "2 za 1",
-    discountLabel: "-50%",
+    discountLabel: "2 za 1",
     price: 17.9,
     oldPrice: 35.8,
     title: "Dwa bubble tea w cenie jednego",
@@ -89,3 +88,8 @@ export const MOCK_COUPONS: Coupon[] = [
     price: 18,
   },
 ];
+
+// Stands in for the affiliate coupons API until it is connected (KAN-15).
+export async function fetchCoupons(): Promise<Coupon[]> {
+  return createMockCoupons();
+}

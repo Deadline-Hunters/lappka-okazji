@@ -7,14 +7,21 @@ import type { Coupon } from "../types";
 import { CouponQrCode } from "./CouponQrCode";
 
 type Props = {
-  coupon: Coupon | null;
+  coupon: Coupon;
+  visible: boolean;
   onClose: () => void;
 };
 
-export function CouponQrModal({ coupon, onClose }: Props) {
+export function CouponQrModal({ coupon, visible, onClose }: Props) {
+  const qrCode = coupon.qrCode;
+
+  if (!qrCode) {
+    throw new Error("CouponQrModal requires a coupon with a QR code");
+  }
+
   return (
     <Modal
-      visible={coupon !== null}
+      visible={visible}
       transparent
       animationType="fade"
       onRequestClose={onClose}
@@ -26,41 +33,39 @@ export function CouponQrModal({ coupon, onClose }: Props) {
           accessibilityLabel="Zamknij kod QR"
         />
 
-        {coupon ? (
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <View style={styles.headerText}>
-                <Text style={styles.brandName}>{coupon.brandName}</Text>
-                <Text style={styles.title} numberOfLines={2}>
-                  {coupon.title}
-                </Text>
-              </View>
-              <Pressable
-                onPress={onClose}
-                hitSlop={10}
-                style={styles.closeIcon}
-                accessibilityRole="button"
-                accessibilityLabel="Zamknij"
-              >
-                <Ionicons name="close" size={20} color={colors.textMuted} />
-              </Pressable>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <View style={styles.headerText}>
+              <Text style={styles.brandName}>{coupon.brandName}</Text>
+              <Text style={styles.title} numberOfLines={2}>
+                {coupon.title}
+              </Text>
             </View>
-
-            <View style={styles.qrWrapper}>
-              <CouponQrCode value={coupon.qrCode ?? coupon.id} size={224} />
-            </View>
-
-            <Text style={styles.caption}>Pokaż ten kod przy kasie</Text>
-
             <Pressable
               onPress={onClose}
-              style={styles.doneButton}
+              hitSlop={10}
+              style={styles.closeIcon}
               accessibilityRole="button"
+              accessibilityLabel="Zamknij"
             >
-              <Text style={styles.doneButtonText}>Gotowe</Text>
+              <Ionicons name="close" size={20} color={colors.textMuted} />
             </Pressable>
           </View>
-        ) : null}
+
+          <View style={styles.qrWrapper}>
+            <CouponQrCode value={qrCode} size={224} />
+          </View>
+
+          <Text style={styles.caption}>Pokaż ten kod przy kasie</Text>
+
+          <Pressable
+            onPress={onClose}
+            style={styles.doneButton}
+            accessibilityRole="button"
+          >
+            <Text style={styles.doneButtonText}>Gotowe</Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );
