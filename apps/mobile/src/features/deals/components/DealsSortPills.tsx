@@ -17,6 +17,7 @@ const SORT_OPTIONS: SortItem[] = [
   { id: "closest", label: "Najbliżej", icon: "navigate" },
   { id: "newest", label: "Najnowsze", icon: "flash" },
   { id: "biggest_discount", label: "Największe rabaty", icon: "flame" },
+  { id: "bookmarked", label: "Zapisane", icon: "bookmark" },
 ];
 
 type Props = {

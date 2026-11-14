@@ -5,14 +5,14 @@ import { colors, radius, spacing } from "@/theme";
 
 type Props = {
   city?: string;
-  district?: string;
+
   radiusMeters?: number;
   dealsCount: number;
 };
 
 export function DealsLocationBanner({
-  city = "Kraków",
-  district = "Stare Miasto",
+  city,
+
   radiusMeters = 500,
   dealsCount,
 }: Props) {
@@ -32,7 +32,7 @@ export function DealsLocationBanner({
       </View>
       <View style={styles.textWrapper}>
         <Text style={styles.title} numberOfLines={1}>
-          {city} • {district}
+          {city}
         </Text>
         <Text style={styles.subtitle}>
           Promień {radiusMeters} m wokół Ciebie

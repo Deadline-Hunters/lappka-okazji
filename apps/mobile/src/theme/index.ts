@@ -1,4 +1,5 @@
 // Basic tokens based on the Figma mockups.
+// TODO: To be extended in KAN-11.
 export const colors = {
   background: "#F7F5FB",
   surface: "#FFFFFF",
@@ -29,11 +30,9 @@ export const colors = {
 } as const;
 
 export const radius = {
-  xs: 6,
   sm: 8,
   md: 12,
-  lg: 16,
-  xl: 24,
+  lg: 20,
   pill: 999,
 } as const;
 
@@ -42,6 +41,5 @@ export const spacing = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-  xxl: 24,
+  xl: 24,
 } as const;

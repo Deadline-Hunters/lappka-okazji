@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
   CATEGORIES,
-  discountPercent,
   formatPrice,
   formatTimeAgo,
   type Deal,
@@ -15,21 +14,23 @@ import { colors, radius, spacing } from "@/theme";
 type Props = {
   deal: Deal;
   userLocation: LatLng | null;
+  isBookmarked?: boolean;
   onPress?: () => void;
   onBookmarkToggle?: (dealId: string) => void;
-  onActionPress?: (deal: Deal) => void;
+  onActionPress: (deal: Deal) => void;
 };
 
 export function DealCard({
   deal,
   userLocation,
+  isBookmarked,
   onPress,
   onBookmarkToggle,
   onActionPress,
 }: Props) {
-  const [bookmarked, setBookmarked] = useState(deal.isBookmarked ?? false);
+  const [bookmarked, setBookmarked] = useState(isBookmarked ?? false);
   const category = CATEGORIES[deal.category] ?? CATEGORIES.inne;
-  const discount = discountPercent(deal);
+  const discount = null;
   const distance = userLocation
     ? formatDistance(distanceInMeters(userLocation, deal.location))
     : null;
@@ -40,15 +41,11 @@ export function DealCard({
   };
 
   const handleCardPress = () => {
-    if (onActionPress) {
-      onActionPress(deal);
-    } else if (onPress) {
-      onPress();
-    }
+    onActionPress(deal);
   };
 
   const badgeText = deal.badgeText ?? (discount ? `-${discount}%` : undefined);
-  const buttonText = deal.actionLabel ?? "Przejdź do okazji";
+  const buttonText = "Przejdź do okazji";
 
   return (
     <Pressable
@@ -71,9 +68,9 @@ export function DealCard({
                 {deal.storeName}
               </Text>
               <View style={styles.badgesWrapper}>
-                {deal.tag ? (
+                {deal.category ? (
                   <View style={styles.tagBadge}>
-                    <Text style={styles.tagBadgeText}>{deal.tag}</Text>
+                    <Text style={styles.tagBadgeText}>{deal.category}</Text>
                   </View>
                 ) : null}
                 {badgeText ? (
@@ -119,6 +116,8 @@ export function DealCard({
               <Text style={styles.oldPrice}>{formatPrice(deal.oldPrice)}</Text>
             ) : null}
           </View>
+        ) : deal.price === 0 ? (
+          <Text style={styles.currentPrice}>GRATIS!</Text>
         ) : null}
 
         {/* Stopka: potwierdzenia społeczne + przycisk akcji */}
@@ -146,7 +145,7 @@ export function DealCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowRadius: 10,

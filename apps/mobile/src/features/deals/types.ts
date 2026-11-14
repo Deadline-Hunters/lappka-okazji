@@ -3,7 +3,8 @@ import type { LatLng } from "@/lib/geo";
 export type DealCategory =
   "jedzenie" | "kawa" | "moda" | "elektronika" | "rozrywka" | "uslugi" | "inne";
 
-export type DealSortOption = "closest" | "newest" | "biggest_discount";
+export type DealSortOption =
+  "closest" | "newest" | "biggest_discount" | "bookmarked";
 
 export type Deal = {
   id: string;
@@ -21,15 +22,8 @@ export type Deal = {
   denials: number;
 
   // Additional fields for rich presentation (from Figma KAN-12)
-  imageUrl?: string;
   badgeText?: string;
-  priceDetail?: string;
-  tag?: string;
   couponCode?: string;
-  actionLabel?: string;
-  activeFromLabel?: string;
-  subscribersCount?: number;
-  isBookmarked?: boolean;
 };
 
 export const CATEGORIES: Record<
@@ -53,11 +47,6 @@ export function isFresh(deal: Deal, now = Date.now()) {
 }
 
 export function discountPercent(deal: Deal) {
-  if (deal.badgeText) {
-    const match = deal.badgeText.match(/-?(\d+)%/);
-    if (match) return parseInt(match[1], 10);
-  }
-
   if (!deal.oldPrice || deal.oldPrice <= deal.price) {
     return null;
   }

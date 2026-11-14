@@ -12,7 +12,22 @@ import { DealsSearchBar } from "./components/DealsSearchBar";
 import { DealsSortPills } from "./components/DealsSortPills";
 import { DealsTopBar } from "./components/DealsTopBar";
 import { MOCK_DEALS } from "./mockDeals";
-import { discountPercent, type Deal, type DealSortOption } from "./types";
+import type { Deal, DealSortOption } from "./types";
+
+const normalizeString = (str: string) => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .replace(/ą/g, "a")
+    .replace(/ć/g, "c")
+    .replace(/ę/g, "e")
+    .replace(/ł/g, "l")
+    .replace(/ń/g, "n")
+    .replace(/ó/g, "o")
+    .replace(/ś/g, "s")
+    .replace(/ź/g, "z")
+    .replace(/ż/g, "z");
+};
 
 export function DealsScreen() {
   const insets = useSafeAreaInsets();
@@ -20,7 +35,10 @@ export function DealsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<DealSortOption>("closest");
   const [refreshing, setRefreshing] = useState(false);
-  const [deals, setDeals] = useState<Deal[]>(MOCK_DEALS);
+  const [deals] = useState<Deal[]>(MOCK_DEALS);
+  const [bookmarkedDealIds, setBookmarkedDealIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const referenceLocation = location ?? DEFAULT_CENTER;
 
@@ -30,15 +48,14 @@ export function DealsScreen() {
 
     // 1. Filtrowanie po tekście
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
+      const q = normalizeString(searchQuery.trim());
       result = result.filter(
         (deal) =>
-          deal.title.toLowerCase().includes(q) ||
-          deal.storeName.toLowerCase().includes(q) ||
-          deal.address.toLowerCase().includes(q) ||
-          deal.description?.toLowerCase().includes(q) ||
-          deal.category.toLowerCase().includes(q) ||
-          deal.tag?.toLowerCase().includes(q),
+          normalizeString(deal.title).includes(q) ||
+          normalizeString(deal.storeName).includes(q) ||
+          normalizeString(deal.address).includes(q) ||
+          normalizeString(deal.description || "").includes(q) ||
+          normalizeString(deal.category).includes(q),
       );
     }
 
@@ -57,14 +74,25 @@ export function DealsScreen() {
       }
 
       if (sortBy === "biggest_discount") {
-        const discA = discountPercent(a) ?? 0;
-        const discB = discountPercent(b) ?? 0;
-        return discB - discA;
+        const getDiscount = (deal: Deal) => {
+          if (deal.oldPrice && deal.oldPrice > deal.price) {
+            return (deal.oldPrice - deal.price) / deal.oldPrice;
+          }
+          return 0;
+        };
+
+        return getDiscount(b) - getDiscount(a);
+      }
+
+      if (sortBy === "bookmarked") {
+        const isA = bookmarkedDealIds.has(a.id) ? 1 : 0;
+        const isB = bookmarkedDealIds.has(b.id) ? 1 : 0;
+        return isB - isA;
       }
 
       return 0;
     });
-  }, [deals, searchQuery, sortBy, referenceLocation]);
+  }, [deals, searchQuery, sortBy, referenceLocation, bookmarkedDealIds]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -73,13 +101,15 @@ export function DealsScreen() {
   };
 
   const handleBookmarkToggle = (dealId: string) => {
-    setDeals((currentDeals) =>
-      currentDeals.map((deal) =>
-        deal.id === dealId
-          ? { ...deal, isBookmarked: !deal.isBookmarked }
-          : deal,
-      ),
-    );
+    setBookmarkedDealIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(dealId)) {
+        next.delete(dealId);
+      } else {
+        next.add(dealId);
+      }
+      return next;
+    });
   };
 
   const handleActionPress = (deal: Deal) => {
@@ -98,8 +128,8 @@ export function DealsScreen() {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyTitle}>Brak okazji</Text>
       <Text style={styles.emptySubtitle}>
-        Nie znaleziono ofert pasujących do „{searchQuery}”. Spróbuj zmienić
-        hasło lub wybrać inne sortowanie.
+        Nie znaleziono ofert pasujących do „{searchQuery}”. Spróbuj użyć innych
+        słów kluczowych lub zmienić filtry.
       </Text>
     </View>
   );
@@ -138,6 +168,7 @@ export function DealsScreen() {
             <DealCard
               deal={item}
               userLocation={location}
+              isBookmarked={bookmarkedDealIds.has(item.id)}
               onBookmarkToggle={handleBookmarkToggle}
               onActionPress={handleActionPress}
               onPress={() => handleActionPress(item)}
@@ -147,8 +178,7 @@ export function DealsScreen() {
         ListHeaderComponent={
           <View style={styles.bannerWrapper}>
             <DealsLocationBanner
-              city="Kraków"
-              district="Stare Miasto"
+              city=""
               radiusMeters={500}
               dealsCount={filteredAndSortedDeals.length}
             />
@@ -183,14 +213,14 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.xxl * 2,
+    paddingBottom: spacing.xl * 2,
     gap: spacing.md,
   },
   cardWrapper: {
     marginBottom: spacing.xs,
   },
   emptyContainer: {
-    paddingVertical: spacing.xxl * 2,
+    paddingVertical: spacing.xl * 2,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,

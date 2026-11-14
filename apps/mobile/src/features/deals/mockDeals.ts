@@ -26,7 +26,6 @@ export const MOCK_DEALS: Deal[] = [
     createdAt: minutesAgo(8),
     confirmations: 14,
     denials: 0,
-    isBookmarked: false,
   },
   {
     id: "deal-2",
@@ -44,7 +43,6 @@ export const MOCK_DEALS: Deal[] = [
     createdAt: minutesAgo(35),
     confirmations: 9,
     denials: 0,
-    isBookmarked: false,
   },
   {
     id: "deal-3",
@@ -57,14 +55,11 @@ export const MOCK_DEALS: Deal[] = [
     location: { latitude: 50.064, longitude: 19.9315 },
     price: 0,
     badgeText: "-30%",
-    tag: "Studenckie 🎓",
     couponCode: "SESJA24",
-    actionLabel: "Przejdź do okazji",
     validUntil: todayAt(23),
     createdAt: minutesAgo(65),
     confirmations: 28,
     denials: 0,
-    isBookmarked: false,
   },
   {
     id: "deal-4",
@@ -81,7 +76,6 @@ export const MOCK_DEALS: Deal[] = [
     createdAt: minutesAgo(12),
     confirmations: 19,
     denials: 0,
-    isBookmarked: false,
   },
   {
     id: "deal-5",
@@ -97,7 +91,6 @@ export const MOCK_DEALS: Deal[] = [
     createdAt: minutesAgo(25),
     confirmations: 7,
     denials: 0,
-    isBookmarked: false,
   },
   {
     id: "deal-6",
@@ -113,6 +106,5 @@ export const MOCK_DEALS: Deal[] = [
     createdAt: minutesAgo(180),
     confirmations: 4,
     denials: 1,
-    isBookmarked: false,
   },
 ];
