@@ -170,8 +170,7 @@ export function DealsScreen() {
               userLocation={location}
               isBookmarked={bookmarkedDealIds.has(item.id)}
               onBookmarkToggle={handleBookmarkToggle}
-              onActionPress={handleActionPress}
-              onPress={() => handleActionPress(item)}
+              onPress={handleActionPress}
             />
           </View>
         )}

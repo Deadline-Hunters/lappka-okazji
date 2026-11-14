@@ -15,18 +15,16 @@ type Props = {
   deal: Deal;
   userLocation: LatLng | null;
   isBookmarked?: boolean;
-  onPress?: () => void;
   onBookmarkToggle?: (dealId: string) => void;
-  onActionPress: (deal: Deal) => void;
+  onPress: (deal: Deal) => void;
 };
 
 export function DealCard({
   deal,
   userLocation,
   isBookmarked,
-  onPress,
   onBookmarkToggle,
-  onActionPress,
+  onPress,
 }: Props) {
   const [bookmarked, setBookmarked] = useState(isBookmarked ?? false);
   const category = CATEGORIES[deal.category] ?? CATEGORIES.inne;
@@ -41,7 +39,7 @@ export function DealCard({
   };
 
   const handleCardPress = () => {
-    onActionPress(deal);
+    onPress(deal);
   };
 
   const badgeText = deal.badgeText ?? (discount ? `-${discount}%` : undefined);
