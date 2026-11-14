@@ -1,7 +1,10 @@
 import type { LatLng } from "@/lib/geo";
 
 export type DealCategory =
-  "jedzenie" | "kawa" | "moda" | "elektronika" | "rozrywka" | "inne";
+  "jedzenie" | "kawa" | "moda" | "elektronika" | "rozrywka" | "uslugi" | "inne";
+
+export type DealSortOption =
+  "closest" | "newest" | "biggest_discount" | "bookmarked";
 
 export type Deal = {
   id: string;
@@ -17,6 +20,10 @@ export type Deal = {
   createdAt: string;
   confirmations: number;
   denials: number;
+
+  // Additional fields for rich presentation (from Figma KAN-12)
+  badgeText?: string;
+  couponCode?: string;
 };
 
 export const CATEGORIES: Record<
@@ -28,8 +35,10 @@ export const CATEGORIES: Record<
   moda: { label: "Moda", emoji: "👕", color: "#7C4DDB" },
   elektronika: { label: "Elektronika", emoji: "🎧", color: "#2F6FDE" },
   rozrywka: { label: "Rozrywka", emoji: "🎟️", color: "#E07B1A" },
+  uslugi: { label: "Usługi", emoji: "🖨️", color: "#2F6FDE" },
   inne: { label: "Inne", emoji: "🛍️", color: "#8E8A96" },
 };
+
 // Set to one hour for now, open for discussion.
 const FRESH_THRESHOLD_MS = 60 * 60 * 1000;
 
@@ -47,4 +56,18 @@ export function discountPercent(deal: Deal) {
 
 export function formatPrice(value: number) {
   return `${value.toFixed(2).replace(".", ",")} zł`;
+}
+
+export function formatTimeAgo(isoDate: string, now = Date.now()) {
+  const diffMs = now - new Date(isoDate).getTime();
+  const diffMinutes = Math.floor(diffMs / 60_000);
+
+  if (diffMinutes < 1) return "przed chwilą";
+  if (diffMinutes < 60) return `${diffMinutes} min temu`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} godz. temu`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} dni temu`;
 }

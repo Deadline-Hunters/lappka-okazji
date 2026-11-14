@@ -37,7 +37,11 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="deals"
-        options={{ title: "Okazje", tabBarIcon: tabIcon("flame-outline") }}
+        options={{
+          title: "Okazje",
+          headerShown: false,
+          tabBarIcon: tabIcon("flame-outline"),
+        }}
       />
       <Tabs.Screen
         name="coupons"
