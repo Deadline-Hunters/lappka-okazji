@@ -69,47 +69,80 @@ type Props = {
   dom?: DOMProps;
 };
 
+// Pins from the Figma mockup: a teardrop (a square with one sharp corner, rotated by 45°) whose tip points
+// exactly at the deal. The marker box is 40x48 px - the tip ends at its bottom edge, which is the anchor.
+// The scale on selection happens on .marker__body, because MapLibre positions .marker itself with a transform.
+// Don't set "position" on .marker / .me - MapLibre makes markers absolute; overriding it stacks them in the
+// page flow and every pin ends up shifted down by the ones before it.
 const CSS = `
   html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
   .map { position: fixed; inset: 0; }
-  .marker { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+  .marker { width: 40px; height: 48px; cursor: pointer; }
+  .marker--selected { z-index: 2; }
+  .marker__body {
+    position: absolute; inset: 0; transform-origin: 50% 100%; transition: transform .15s ease-out;
+  }
+  .marker--selected .marker__body { transform: scale(1.2); }
   .pin {
-    position: relative; width: 38px; height: 38px; border-radius: 50%;
+    position: absolute; top: 0; left: 0; box-sizing: border-box; width: 40px; height: 40px;
+    border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
     background: var(--c); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3);
-    display: flex; align-items: center; justify-content: center; font-size: 19px;
-    transition: transform .15s ease-out;
+    display: flex; align-items: center; justify-content: center;
   }
-  .pin::after {
-    content: ""; position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%);
-    border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #fff;
+  .marker--selected .pin { box-shadow: 0 0 0 4px rgba(210,115,58,.4), 0 3px 8px rgba(0,0,0,.35); }
+  .pin__icon { transform: rotate(45deg); font-size: 18px; line-height: 1; }
+  .dot {
+    position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; box-sizing: border-box;
+    border-radius: 50%; background: #d2733a; border: 2px solid #fff;
   }
-  .marker--selected .pin { transform: scale(1.25); }
-  .marker--selected { z-index: 1; }
-  .marker--fresh .pin::before {
-    content: ""; position: absolute; inset: -6px; border-radius: 50%;
-    border: 3px solid var(--c); opacity: .6; animation: pulse 1.6s ease-out infinite;
+  .dot::after {
+    content: ""; position: absolute; inset: -5px; border-radius: 50%;
+    border: 2px solid #d2733a; animation: pulse 1.6s ease-out infinite;
   }
   .label {
-    margin-top: 10px; padding: 2px 6px; border-radius: 999px; background: #1e1b24; color: #fff;
+    position: absolute; top: 52px; left: 50%; transform: translateX(-50%);
+    padding: 2px 7px; border-radius: 999px; background: #1e1b24; color: #fff;
     font: 600 11px/1.3 -apple-system, system-ui, sans-serif; white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
   }
-  .me { position: relative; width: 18px; height: 18px; border-radius: 50%; background: #2f6fde; border: 3px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,.35); }
+  .me { width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; background: #2f6fde; border: 3px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,.35); }
   .me::before {
     content: ""; position: absolute; inset: -12px; border-radius: 50%;
     background: rgba(47,111,222,.25); animation: pulse 2s ease-out infinite;
+  }
+  .me__label {
+    position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+    padding: 2px 8px; border-radius: 999px; background: #fff; color: #1e1b24;
+    font: 600 11px/1.3 -apple-system, system-ui, sans-serif; white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25);
   }
   @keyframes pulse { from { transform: scale(.6); opacity: .8; } to { transform: scale(1.6); opacity: 0; } }
 `;
 
 function createMarkerElement(marker: MapMarker) {
   const root = document.createElement("div");
-  root.className = "marker" + (marker.fresh ? " marker--fresh" : "");
+  root.className = "marker";
+
+  const body = document.createElement("div");
+  body.className = "marker__body";
+  root.appendChild(body);
 
   const pin = document.createElement("div");
   pin.className = "pin";
   pin.style.setProperty("--c", marker.color);
-  pin.textContent = marker.emoji;
-  root.appendChild(pin);
+  body.appendChild(pin);
+
+  const icon = document.createElement("span");
+  icon.className = "pin__icon";
+  icon.textContent = marker.emoji;
+  pin.appendChild(icon);
+
+  // Fresh deal (added recently) - a small pulsing dot like in the mockup.
+  if (marker.fresh) {
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    body.appendChild(dot);
+  }
 
   if (marker.label) {
     const label = document.createElement("div");
@@ -117,6 +150,18 @@ function createMarkerElement(marker: MapMarker) {
     label.textContent = marker.label;
     root.appendChild(label);
   }
+
+  return root;
+}
+
+function createUserElement() {
+  const root = document.createElement("div");
+  root.className = "me";
+
+  const label = document.createElement("div");
+  label.className = "me__label";
+  label.textContent = "Ty tu jesteś";
+  root.appendChild(label);
 
   return root;
 }
@@ -241,11 +286,8 @@ export default function DealsMap({
         event.stopPropagation();
         void callbacks.current.onMarkerPress(data.id);
       });
-      const marker = new lib.Marker({
-        element,
-        anchor: "bottom",
-        offset: [0, 18],
-      })
+      // The pin's tip is the bottom edge of the element, so "bottom" puts it right on the deal.
+      const marker = new lib.Marker({ element, anchor: "bottom" })
         .setLngLat([data.longitude, data.latitude])
         .addTo(map);
       markerRefs.current.set(data.id, { marker, element });
@@ -274,9 +316,7 @@ export default function DealsMap({
     if (userMarkerRef.current) {
       userMarkerRef.current.setLngLat(lngLat);
     } else {
-      const element = document.createElement("div");
-      element.className = "me";
-      userMarkerRef.current = new lib.Marker({ element })
+      userMarkerRef.current = new lib.Marker({ element: createUserElement() })
         .setLngLat(lngLat)
         .addTo(map);
     }
@@ -284,6 +324,23 @@ export default function DealsMap({
 
   useEffect(() => {
     if (!map || !camera) return;
+
+    if (camera.bounds) {
+      const { southWest, northEast } = camera.bounds;
+      map.fitBounds(
+        [
+          [southWest.longitude, southWest.latitude],
+          [northEast.longitude, northEast.latitude],
+        ],
+        // Room for the search bar on top and for the pins and their labels.
+        {
+          padding: { top: 120, bottom: 70, left: 50, right: 50 },
+          maxZoom: 16,
+          duration: 600,
+        },
+      );
+      return;
+    }
 
     map.flyTo({
       center: [camera.longitude, camera.latitude],

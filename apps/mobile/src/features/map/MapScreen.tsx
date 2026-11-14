@@ -1,6 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Keyboard,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MOCK_DEALS } from "@/features/deals/mockDeals";
 import { CATEGORIES, discountPercent, isFresh } from "@/features/deals/types";
@@ -9,12 +17,18 @@ import { colors, radius, spacing } from "@/theme";
 
 import { DealPreviewCard } from "./DealPreviewCard";
 import DealsMap from "./DealsMap";
-import type { CameraTarget, MapMarker } from "./types";
+import { MapHeader } from "./MapHeader";
+import { MapSearchBar } from "./MapSearchBar";
+import { matchesSearch } from "./search";
+import type { CameraTarget, MapMarker, Vote } from "./types";
 import { useUserLocation } from "./useUserLocation";
 
 const USER_ZOOM = 16;
+// Wait until the user stops typing before moving the camera to the search results.
+const SEARCH_CAMERA_DELAY_MS = 500;
 
 export function MapScreen() {
+  const insets = useSafeAreaInsets();
   const [camera, setCamera] = useState<CameraTarget | null>(null);
   const flyTo = useCallback((location: LatLng, zoom?: number) => {
     setCamera((previous) => ({
@@ -23,16 +37,57 @@ export function MapScreen() {
       id: (previous?.id ?? 0) + 1,
     }));
   }, []);
+  const fitTo = useCallback((points: LatLng[]) => {
+    const latitudes = points.map((point) => point.latitude);
+    const longitudes = points.map((point) => point.longitude);
+    const southWest = {
+      latitude: Math.min(...latitudes),
+      longitude: Math.min(...longitudes),
+    };
+    const northEast = {
+      latitude: Math.max(...latitudes),
+      longitude: Math.max(...longitudes),
+    };
+    setCamera((previous) => ({
+      latitude: (southWest.latitude + northEast.latitude) / 2,
+      longitude: (southWest.longitude + northEast.longitude) / 2,
+      bounds: { southWest, northEast },
+      id: (previous?.id ?? 0) + 1,
+    }));
+  }, []);
   const { location, status, refresh } = useUserLocation();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [votes, setVotes] = useState<Record<string, Vote>>({});
   const hasCenteredOnUser = useRef(false);
 
   const deals = MOCK_DEALS;
-  const selectedDeal = deals.find((deal) => deal.id === selectedDealId) ?? null;
+  const visibleDeals = useMemo(
+    () => deals.filter((deal) => matchesSearch(deal, query)),
+    [deals, query],
+  );
+  // A deal hidden by the search also closes its card.
+  const selectedDeal =
+    visibleDeals.find((deal) => deal.id === selectedDealId) ?? null;
+  const trimmedQuery = query.trim();
+
+  // Bring the search results into view - they can be outside the visible part of the map.
+  useEffect(() => {
+    if (!trimmedQuery || visibleDeals.length === 0) return;
+
+    const timer = setTimeout(() => {
+      if (visibleDeals.length === 1) {
+        flyTo(visibleDeals[0].location, USER_ZOOM);
+      } else {
+        fitTo(visibleDeals.map((deal) => deal.location));
+      }
+    }, SEARCH_CAMERA_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [trimmedQuery, visibleDeals, flyTo, fitTo]);
 
   const markers = useMemo<MapMarker[]>(
     () =>
-      deals.map((deal) => {
+      visibleDeals.map((deal) => {
         const category = CATEGORIES[deal.category];
         const discount = discountPercent(deal);
         return {
@@ -41,11 +96,16 @@ export function MapScreen() {
           longitude: deal.location.longitude,
           emoji: category.emoji,
           color: category.color,
-          label: discount ? `-${discount}%` : undefined,
+          label:
+            deal.price === 0
+              ? "Gratis"
+              : discount
+                ? `-${discount}%`
+                : undefined,
           fresh: isFresh(deal),
         };
       }),
-    [deals],
+    [visibleDeals],
   );
 
   // Center the map on the user once their position is first known.
@@ -59,6 +119,7 @@ export function MapScreen() {
   // Callbacks passed to a DOM component must be async.
   const handleMarkerPress = useCallback(
     async (id: string) => {
+      Keyboard.dismiss();
       setSelectedDealId(id);
       const deal = deals.find((item) => item.id === id);
       if (deal) flyTo(deal.location);
@@ -66,7 +127,10 @@ export function MapScreen() {
     [deals, flyTo],
   );
 
-  const handleMapPress = useCallback(async () => setSelectedDealId(null), []);
+  const handleMapPress = useCallback(async () => {
+    Keyboard.dismiss();
+    setSelectedDealId(null);
+  }, []);
 
   const handleOpenUrl = useCallback(async (url: string) => {
     await Linking.openURL(url);
@@ -81,87 +145,136 @@ export function MapScreen() {
     }
   }, [refresh, location, flyTo]);
 
+  // One vote per deal: tapping the same button again takes the vote back.
+  const handleVote = useCallback((dealId: string, vote: Vote) => {
+    setVotes((previous) => {
+      const next = { ...previous };
+      if (previous[dealId] === vote) {
+        delete next[dealId];
+      } else {
+        next[dealId] = vote;
+      }
+      return next;
+    });
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <DealsMap
-        initialCenter={DEFAULT_CENTER}
-        markers={markers}
-        userLocation={location}
-        selectedMarkerId={selectedDealId}
-        camera={camera}
-        onMarkerPress={handleMarkerPress}
-        onMapPress={handleMapPress}
-        onOpenUrl={handleOpenUrl}
-        dom={{ style: styles.map, scrollEnabled: false }}
-      />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <MapHeader />
 
-      {status === "denied" || status === "unavailable" ? (
-        <View style={styles.banner}>
-          <Text style={styles.bannerText}>
-            {status === "denied"
-              ? "Brak zgody na lokalizację - pokazujemy centrum Krakowa."
-              : "Nie udało się ustalić lokalizacji - pokazujemy centrum Krakowa."}
-          </Text>
+      <View style={styles.mapArea}>
+        <DealsMap
+          initialCenter={DEFAULT_CENTER}
+          markers={markers}
+          userLocation={location}
+          selectedMarkerId={selectedDeal?.id ?? null}
+          camera={camera}
+          onMarkerPress={handleMarkerPress}
+          onMapPress={handleMapPress}
+          onOpenUrl={handleOpenUrl}
+          dom={{ style: styles.map, scrollEnabled: false }}
+        />
+
+        <View style={styles.overlay}>
+          <MapSearchBar value={query} onChangeText={setQuery} />
+
+          <View style={styles.overlayRow}>
+            <View style={styles.notices}>
+              {trimmedQuery && visibleDeals.length === 0 ? (
+                <View style={styles.notice}>
+                  <Text style={styles.noticeText}>
+                    Brak okazji pasujących do „{trimmedQuery}”.
+                  </Text>
+                </View>
+              ) : null}
+              {status === "denied" || status === "unavailable" ? (
+                <View style={styles.notice}>
+                  <Text style={styles.noticeText}>
+                    {status === "denied"
+                      ? "Brak zgody na lokalizację - pokazujemy centrum Krakowa."
+                      : "Nie udało się ustalić lokalizacji - pokazujemy centrum Krakowa."}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <Pressable
+              style={styles.controlButton}
+              onPress={handleRecenter}
+              accessibilityRole="button"
+              accessibilityLabel="Wycentruj na mojej pozycji"
+            >
+              <Ionicons name="locate" size={22} color={colors.accent} />
+            </Pressable>
+          </View>
         </View>
-      ) : null}
 
-      <View style={styles.controls}>
-        <Pressable
-          style={styles.controlButton}
-          onPress={handleRecenter}
-          accessibilityRole="button"
-          accessibilityLabel="Wycentruj na mojej pozycji"
-        >
-          <Ionicons name="locate" size={22} color={colors.accent} />
-        </Pressable>
+        {selectedDeal ? (
+          <View style={styles.preview}>
+            <DealPreviewCard
+              deal={selectedDeal}
+              userLocation={location}
+              vote={votes[selectedDeal.id] ?? null}
+              onVote={(vote) => handleVote(selectedDeal.id, vote)}
+              onClose={handleMapPress}
+            />
+          </View>
+        ) : null}
       </View>
-
-      {selectedDeal ? (
-        <View style={styles.preview}>
-          <DealPreviewCard
-            deal={selectedDeal}
-            userLocation={location}
-            onClose={handleMapPress}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
 
+const shadow = {
+  shadowColor: "#000",
+  shadowOpacity: 0.12,
+  shadowRadius: 6,
+  shadowOffset: { width: 0, height: 2 },
+} as const;
+
 const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  banner: {
+  mapArea: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+  // Lets touches through to the map everywhere except the search bar, notices and buttons.
+  overlay: {
     position: "absolute",
     top: spacing.md,
     left: spacing.lg,
-    right: 72,
+    right: spacing.lg,
+    gap: spacing.sm,
+    pointerEvents: "box-none",
+  },
+  overlayRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+    pointerEvents: "box-none",
+  },
+  notices: {
+    flex: 1,
+    gap: spacing.sm,
     pointerEvents: "none",
+  },
+  notice: {
+    alignSelf: "flex-start",
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    ...shadow,
   },
-  bannerText: {
+  noticeText: {
     fontSize: 13,
     color: colors.text,
-  },
-  controls: {
-    position: "absolute",
-    top: spacing.md,
-    right: spacing.lg,
-    gap: spacing.sm,
   },
   controlButton: {
     width: 44,
@@ -171,10 +284,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    ...shadow,
   },
   preview: {
     position: "absolute",
