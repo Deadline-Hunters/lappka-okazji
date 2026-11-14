@@ -26,12 +26,12 @@ function getDaysAgo(days: number, hours = 12, minutes = 0): string {
 
 export const MOCK_PROFILE: ProfileDto = {
   user: {
-    id: "usr_kasia_kowalska_42",
-    firstName: "Kasia",
-    lastName: "Kowalska",
-    username: "Kasia_UJ",
+    id: "usr_kamil_kowalski_42",
+    firstName: "Kamil",
+    lastName: "Kowalski",
+    username: "Kamil_PK",
     avatarUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80",
+      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&q=80",
     isVerified: true,
     createdAt: "2025-01-15T10:00:00.000Z",
   },

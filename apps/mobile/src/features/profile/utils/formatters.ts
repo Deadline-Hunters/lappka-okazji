@@ -124,11 +124,7 @@ export function formatRelativeTime(isoDate: string): string {
     return "Wczoraj";
   }
 
-  if (diffDays >= 2 && diffDays <= 4) {
-    return `${diffDays} dni temu`;
-  }
-
-  if (diffDays > 4 && diffDays <= 30) {
+  if (diffDays >= 2 && diffDays <= 30) {
     return `${diffDays} dni temu`;
   }
 
