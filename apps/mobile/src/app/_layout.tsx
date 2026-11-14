@@ -2,9 +2,10 @@ import { Redirect, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
 import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
+import { AuthSessionContext } from "@/lib/auth-session";
 
 // Expo SDK 58 bug (expo/build/dom/webview-wrapper.js): on a DOM component's first render it sends
 // props to the WebView before the native view exists and doesn't catch the rejected promise.
@@ -12,7 +13,8 @@ import { supabase } from "@/lib/supabase";
 LogBox.ignoreLogs(["DomWebView.injectJavaScript"]);
 
 export default function RootLayout() {
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isDevelopmentFlow, setIsDevelopmentFlow] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const segments = useSegments();
 
@@ -27,7 +29,7 @@ export default function RootLayout() {
         }
 
         if (isMounted) {
-          setUser(data.session?.user ?? null);
+          setSession(data.session);
           setIsLoading(false);
         }
       })
@@ -42,7 +44,7 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (isMounted) {
-        setUser(session?.user ?? null);
+        setSession(session);
       }
     });
 
@@ -58,17 +60,28 @@ export default function RootLayout() {
     return null;
   }
 
-  if (!user && !isAuthRoute) {
+  // TODO(auth): Remove this development-only bypass once the user auth flow is implemented.
+  if (!session && !isDevelopmentFlow && !isAuthRoute) {
     return <Redirect href="/auth" />;
   }
 
   return (
-    <>
+    <AuthSessionContext.Provider
+      value={{
+        session,
+        activateDevelopmentFlow: () => {
+          if (__DEV__) {
+            setIsDevelopmentFlow(true);
+          }
+        },
+        isDevelopmentFlow,
+      }}
+    >
       <StatusBar style="dark" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </AuthSessionContext.Provider>
   );
 }
