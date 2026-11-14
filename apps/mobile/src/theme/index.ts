@@ -1,6 +1,6 @@
-// Basic tokens based on the Figma mockups. 
+// Basic tokens based on the Figma mockups.
 // TODO: To be extended in KAN-11.
-// TODO: To be extended in KAN-11.
+
 export const colors = {
   background: "#F7F5FB",
   surface: "#FFFFFF",
