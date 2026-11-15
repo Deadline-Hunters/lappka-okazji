@@ -11,7 +11,7 @@ export interface UseProfileResult {
 }
 
 /**
- * Hook do zarządzania stanem profilu użytkownika.
+ * Hook for managing user profile state, loading status, and errors.
  */
 export function useProfile(): UseProfileResult {
   const [profile, setProfile] = useState<ProfileDto | null>(null);

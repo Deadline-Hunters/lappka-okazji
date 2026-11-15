@@ -1,12 +1,12 @@
 import type { DealCategory } from "@/features/deals/types";
 
 /**
- * Status zgłoszenia użytkownika.
+ * User submission status.
  */
 export type SubmissionStatus = "active" | "expired";
 
 /**
- * Dane profilowe użytkownika (DTO).
+ * User profile data transfer object (DTO).
  */
 export interface UserProfileDto {
   id: string;
@@ -19,7 +19,7 @@ export interface UserProfileDto {
 }
 
 /**
- * Statystyki aktywności użytkownika (DTO).
+ * User activity statistics (DTO).
  */
 export interface ProfileStatsDto {
   submissionsCount: number;
@@ -28,7 +28,7 @@ export interface ProfileStatsDto {
 }
 
 /**
- * Dane pojedynczego zgłoszenia użytkownika (DTO).
+ * Single user submission data transfer object (DTO).
  */
 export interface MySubmissionDto {
   id: string;
@@ -46,7 +46,7 @@ export interface MySubmissionDto {
 }
 
 /**
- * Nadrzędne DTO agregujące wszystkie dane widoku profilu.
+ * Top-level DTO aggregating all profile view data.
  */
 export interface ProfileDto {
   user: UserProfileDto;
@@ -55,6 +55,6 @@ export interface ProfileDto {
 }
 
 /**
- * Zakładki ekranu profilu.
+ * Profile screen tab keys.
  */
 export type ProfileTab = "submissions" | "radar";

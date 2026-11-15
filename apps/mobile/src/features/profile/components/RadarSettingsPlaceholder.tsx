@@ -6,7 +6,7 @@ import { colors, radius, spacing } from "@/theme";
 export function RadarSettingsPlaceholder() {
   return (
     <View style={styles.card}>
-      {/* Nagłówek i status */}
+      {/* Header and status badge */}
       <View style={styles.header}>
         <View style={styles.iconCircle}>
           <Ionicons name="radio-outline" size={30} color={colors.accent} />
@@ -22,7 +22,7 @@ export function RadarSettingsPlaceholder() {
         otoczeniu oraz dostosowanie powiadomień do Twoich preferencji.
       </Text>
 
-      {/* Podgląd przyszłych opcji konfiguracyjnych */}
+      {/* Preview of upcoming configuration options */}
       <View style={styles.previewContainer}>
         <View style={styles.previewRow}>
           <View style={styles.previewRowLeft}>

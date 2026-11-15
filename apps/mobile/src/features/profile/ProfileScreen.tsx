@@ -58,17 +58,17 @@ export function ProfileScreen() {
         />
       }
     >
-      {/* Karta użytkownika ze zdjęciem, danymi oraz statystykami */}
+      {/* User profile card with avatar, details, and statistics */}
       <UserProfileCard user={profile.user} stats={profile.stats} />
 
-      {/* Przełącznik zakładek */}
+      {/* Tab selector */}
       <ProfileTabs
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         submissionsCount={profile.stats.submissionsCount}
       />
 
-      {/* Zawartość wybranej zakładki */}
+      {/* Selected tab content */}
       {activeTab === "submissions" ? (
         <MySubmissionsList
           submissions={profile.submissions}
@@ -80,7 +80,7 @@ export function ProfileScreen() {
         <RadarSettingsPlaceholder />
       )}
 
-      {/* Przycisk wylogowania */}
+      {/* Sign out button */}
       <LogoutButton />
     </ScrollView>
   );

@@ -10,7 +10,11 @@ export interface CategoryMeta {
 }
 
 /**
- * Zwraca konfigurację ikony i kolorów dla kategorii lub tytułu zgłoszenia.
+ * Returns icon and color styling configuration for a submission category or title.
+ *
+ * NOTE: Mocked functionality for presentation purposes. In a real-world scenario,
+ * categories and icons will be defined dynamically via tags/properties referenced
+ * in the data model.
  */
 export function getCategoryMeta(
   category: string,
@@ -95,7 +99,7 @@ export function getCategoryMeta(
 }
 
 /**
- * Formatuje datę do czytelnej formy relatywnej w języku polskim:
+ * Formats an ISO date string into a user-friendly relative Polish time label:
  * - "Dziś, 14:20"
  * - "Wczoraj"
  * - "X dni temu"
@@ -134,7 +138,7 @@ export function formatRelativeTime(isoDate: string): string {
 }
 
 /**
- * Wylicza procent rabatu z ceny i starej ceny.
+ * Calculates discount percentage based on current price and old price.
  */
 export function calculateDiscountPercent(
   price: number,

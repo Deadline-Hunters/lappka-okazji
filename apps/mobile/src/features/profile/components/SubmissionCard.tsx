@@ -33,7 +33,7 @@ export function SubmissionCard({ submission }: Props) {
 
   return (
     <View style={styles.card}>
-      {/* Górny wiersz: ikona kategorii, tytuł, sklep, status badge */}
+      {/* Top row: category icon, title, store name, status badge */}
       <View style={styles.topRow}>
         <View
           style={[
@@ -63,7 +63,7 @@ export function SubmissionCard({ submission }: Props) {
         />
       </View>
 
-      {/* Dolny wiersz: ceny, rabat oraz czas */}
+      {/* Bottom row: prices, discount badge, and submission time */}
       <View style={styles.bottomRow}>
         <View style={styles.priceContainer}>
           <Text style={styles.price}>{formatPrice(submission.price)}</Text>

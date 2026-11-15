@@ -21,10 +21,10 @@ export function UserProfileCard({ user, stats }: Props) {
 
   return (
     <View style={styles.card}>
-      {/* Dekoracyjne pastelowe tło w górnej części karty */}
+      {/* Decorative pastel glow at the top-left of the card */}
       <View style={styles.decorativeGlow} pointerEvents="none" />
 
-      {/* Główna sekcja z avatarem i danymi użytkownika */}
+      {/* Main section with user avatar and basic info */}
       <View style={styles.userHeader}>
         <View style={styles.avatarContainer}>
           {user.avatarUrl && !imageError ? (
@@ -59,7 +59,7 @@ export function UserProfileCard({ user, stats }: Props) {
         </View>
       </View>
 
-      {/* Sekcja statystyk */}
+      {/* User statistics row */}
       <ProfileStats stats={stats} />
     </View>
   );

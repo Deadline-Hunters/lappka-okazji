@@ -27,7 +27,7 @@ export function LogoutButton() {
         );
         return;
       }
-      // Po pomyślnym wylogowaniu przechodzimy do głównego ekranu publicznego (Mapa)
+      // After successful sign-out, navigate to the public map screen
       router.replace("/(tabs)");
     } catch (err) {
       const message =

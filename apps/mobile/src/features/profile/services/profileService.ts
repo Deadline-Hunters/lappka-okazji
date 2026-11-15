@@ -8,24 +8,26 @@ export interface IProfileService {
 }
 
 /**
- * Serwis dostarczający dane profilu użytkownika.
+ * Service providing user profile data.
  *
- * Aktualnie operuje na danych mockowych zgodnych z docelowym schematem DTO.
- * W przyszłości implementacja ta zostanie podmieniona na zapytania do bazy danych Supabase:
- * np. `supabase.from('profiles').select(...)...`
+ * Currently operates on mocked data conforming to target DTO schemas.
+ * In future iterations, this will be replaced with Supabase queries:
+ * e.g. `supabase.from('profiles').select(...)...`
  */
 export class ProfileService implements IProfileService {
   /**
-   * Pobiera pełny profil użytkownika (dane użytkownika, statystyki, zgłoszenia).
+   * Fetches full user profile (user info, statistics, submissions).
    */
   async getProfile(): Promise<ProfileDto> {
-    // Symulacja asynchronicznego pobierania danych z API / bazy
+    // Simulated async network call delay
     await new Promise((resolve) => setTimeout(resolve, 300));
+    // Note: React Native's Hermes engine does not support structuredClone out of the box,
+    // so JSON serialization is used here for deep cloning this mock object.
     return JSON.parse(JSON.stringify(MOCK_PROFILE));
   }
 
   /**
-   * Pobiera listę zgłoszeń użytkownika.
+   * Fetches submissions created by the user.
    */
   async getUserSubmissions(_userId?: string): Promise<MySubmissionDto[]> {
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -33,7 +35,7 @@ export class ProfileService implements IProfileService {
   }
 
   /**
-   * Pobiera podstawowe informacje o użytkowniku.
+   * Fetches basic user information.
    */
   async getUser(_userId?: string): Promise<UserProfileDto> {
     await new Promise((resolve) => setTimeout(resolve, 150));
