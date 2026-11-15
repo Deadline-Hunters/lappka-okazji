@@ -142,6 +142,11 @@ export const authStyles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.primary,
   },
+  checkboxUnchecked: {
+    borderWidth: 1,
+    borderColor: colors.outline,
+    backgroundColor: colors.surface,
+  },
   secondaryText: { fontSize: 14, color: colors.textMuted },
   link: { fontSize: 13, fontWeight: "700", color: colors.primaryDark },
   primaryButton: {

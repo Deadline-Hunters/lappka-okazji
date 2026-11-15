@@ -14,7 +14,7 @@ export function AuthHero() {
         <Ionicons name="paw" size={17} color={colors.primary} />
         <Text style={authStyles.brandText}>Łappka Okazji</Text>
         <View style={authStyles.dot} />
-        <Text style={authStyles.studentsText}>15k+ studentów</Text>
+        <Text style={authStyles.studentsText}>15k+ użytkowników</Text>
       </View>
       <Text style={authStyles.heroTitle}>
         Łap najlepsze okazje w Twojej okolicy!
