@@ -1,5 +1,3 @@
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import { CouponsScreen } from "@/features/coupons/CouponsScreen";
 
-export default function CouponsScreen() {
-  return <PlaceholderScreen title="Kupony" ticket="KAN-15" />;
-}
+export default CouponsScreen;
