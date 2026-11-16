@@ -14,6 +14,12 @@ export const colors = {
   accentSoft: "#E8F0FE",
   success: "#3C9A5F",
   danger: "#C0392B",
+  secondaryContainer: "#E1E684",
+  secondaryText: "#474A00",
+  surfaceContainer: "#EAEDFF",
+  surfaceContainerLow: "#F2F3FF",
+  inverseSurface: "#283044",
+  outline: "#8C7164",
 
   // Figma tokens for Deals & badges:
   badgeDiscountBg: "#E4F26B",
