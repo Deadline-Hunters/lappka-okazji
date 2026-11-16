@@ -31,7 +31,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Mapa",
-          headerTitle: "Łappka Okazji",
+          headerShown: false,
           tabBarIcon: tabIcon("map-outline"),
         }}
       />
