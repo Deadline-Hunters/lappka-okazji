@@ -31,13 +31,17 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Mapa",
-          headerTitle: "Łappka Okazji",
+          headerShown: false,
           tabBarIcon: tabIcon("map-outline"),
         }}
       />
       <Tabs.Screen
         name="deals"
-        options={{ title: "Okazje", tabBarIcon: tabIcon("flame-outline") }}
+        options={{
+          title: "Okazje",
+          headerShown: false,
+          tabBarIcon: tabIcon("flame-outline"),
+        }}
       />
       <Tabs.Screen
         name="coupons"

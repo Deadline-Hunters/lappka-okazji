@@ -1,4 +1,6 @@
-// Basic tokens based on the Figma mockups. To be extended in KAN-11.
+// Basic tokens based on the Figma mockups.
+// TODO: To be extended in KAN-11.
+
 export const colors = {
   background: "#F7F5FB",
   surface: "#FFFFFF",
@@ -11,6 +13,7 @@ export const colors = {
   primaryDark: "#8A4B1E",
   primarySoft: "#FDEBDD",
   accent: "#2F6FDE",
+  accentSoft: "#E8F0FE",
   success: "#3C9A5F",
   danger: "#C0392B",
   // Attention-grabbing background for highlight badges such as discounts.
@@ -23,6 +26,26 @@ export const colors = {
   neutralDark: "#161B2E",
   // Translucent layer behind modals.
   backdrop: "rgba(22, 17, 28, 0.55)",
+  secondaryContainer: "#E1E684",
+  secondaryText: "#474A00",
+  surfaceContainer: "#EAEDFF",
+  surfaceContainerLow: "#F2F3FF",
+  inverseSurface: "#283044",
+  outline: "#8C7164",
+
+  // Figma tokens for Deals & badges:
+  badgeDiscountBg: "#E4F26B",
+  badgeDiscountText: "#384705",
+  priceHighlight: "#99AA18",
+  activeFilterBg: "#161B2E",
+  activeFilterText: "#FFFFFF",
+  inactiveFilterBg: "#ECE8F5",
+  inactiveFilterText: "#423E4D",
+  locationBannerBg: "#FDF0E6",
+  locationBannerBorder: "#F9DEC9",
+  locationIconBg: "#D2733A",
+  actionButtonBg: "#FEDBC7",
+  actionButtonText: "#7A3511",
 } as const;
 
 export const radius = {

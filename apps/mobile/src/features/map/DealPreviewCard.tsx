@@ -10,9 +10,17 @@ import {
 import { distanceInMeters, formatDistance, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
 
+import { formatHunters, formatTimeAgo } from "./format";
+import type { Vote } from "./types";
+
+// Soft red for the "Już brakło" button - not a theme token yet.
+const DANGER_SOFT = "#FBE4E1";
+
 type Props = {
   deal: Deal;
   userLocation: LatLng | null;
+  vote: Vote | null;
+  onVote: (vote: Vote) => void;
   onClose: () => void;
 };
 
@@ -21,13 +29,22 @@ function formatTime(iso: string) {
   return `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-// Deal preview shown after tapping a marker. Full bottom sheet with voting - KAN-18 / KAN-17.
-export function DealPreviewCard({ deal, userLocation, onClose }: Props) {
+// Deal preview shown after tapping a marker. Full bottom sheet - KAN-18, saving votes - KAN-17.
+export function DealPreviewCard({
+  deal,
+  userLocation,
+  vote,
+  onVote,
+  onClose,
+}: Props) {
   const category = CATEGORIES[deal.category];
   const discount = discountPercent(deal);
   const distance = userLocation
     ? formatDistance(distanceInMeters(userLocation, deal.location))
     : null;
+  // The user's own vote is added on top of the counts from the data.
+  const confirmations = deal.confirmations + (vote === "up" ? 1 : 0);
+  const denials = deal.denials + (vote === "down" ? 1 : 0);
 
   return (
     <View style={styles.card}>
@@ -70,10 +87,98 @@ export function DealPreviewCard({ deal, userLocation, onClose }: Props) {
         ) : null}
       </View>
 
-      <Text style={styles.muted}>
-        👍 {deal.confirmations} · 👎 {deal.denials}
-      </Text>
+      <View style={styles.trustRow}>
+        <View style={styles.trustDot} />
+        <Text style={styles.trustText}>
+          {confirmations > 0
+            ? `Potwierdzone przez ${formatHunters(confirmations)}`
+            : "Nikt jeszcze nie potwierdził"}
+        </Text>
+        <Text style={styles.muted}>{formatTimeAgo(deal.createdAt)}</Text>
+      </View>
+
+      <View style={styles.voteRow}>
+        <VoteButton
+          kind="up"
+          label="Nadal jest!"
+          count={confirmations}
+          active={vote === "up"}
+          onPress={() => onVote("up")}
+        />
+        <VoteButton
+          kind="down"
+          label="Już brakło"
+          count={denials}
+          active={vote === "down"}
+          onPress={() => onVote("down")}
+        />
+      </View>
     </View>
+  );
+}
+
+const VOTE_STYLES = {
+  up: {
+    icon: "thumbs-up",
+    background: colors.primarySoft,
+    activeBackground: colors.primary,
+    color: colors.primaryDark,
+  },
+  down: {
+    icon: "thumbs-down",
+    background: DANGER_SOFT,
+    activeBackground: colors.danger,
+    color: colors.danger,
+  },
+} as const;
+
+function VoteButton({
+  kind,
+  label,
+  count,
+  active,
+  onPress,
+}: {
+  kind: Vote;
+  label: string;
+  count: number;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const variant = VOTE_STYLES[kind];
+  const color = active ? colors.surface : variant.color;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.voteButton,
+        {
+          backgroundColor: active
+            ? variant.activeBackground
+            : variant.background,
+        },
+        pressed && styles.votePressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={`${label} (${count})`}
+    >
+      <Ionicons
+        name={active ? variant.icon : `${variant.icon}-outline`}
+        size={18}
+        color={color}
+      />
+      <Text style={[styles.voteLabel, { color }]}>{label}</Text>
+      <View
+        style={[
+          styles.voteCount,
+          active && { backgroundColor: "rgba(255, 255, 255, 0.25)" },
+        ]}
+      >
+        <Text style={[styles.voteCountText, { color }]}>{count}</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -147,5 +252,55 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: colors.primaryDark,
+  },
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  trustDot: {
+    width: 8,
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+  },
+  trustText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+  },
+  voteRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  voteButton: {
+    flex: 1,
+    height: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    borderRadius: radius.pill,
+  },
+  votePressed: {
+    opacity: 0.8,
+  },
+  voteLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  voteCount: {
+    minWidth: 22,
+    marginLeft: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(0, 0, 0, 0.06)",
+    alignItems: "center",
+  },
+  voteCountText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

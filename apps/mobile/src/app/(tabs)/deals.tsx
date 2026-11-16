@@ -1,5 +1,3 @@
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import { DealsScreen } from "@/features/deals/DealsScreen";
 
-export default function DealsScreen() {
-  return <PlaceholderScreen title="Okazje" ticket="KAN-12" />;
-}
+export default DealsScreen;

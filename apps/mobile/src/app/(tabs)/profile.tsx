@@ -1,5 +1,3 @@
-import { PlaceholderScreen } from "@/components/PlaceholderScreen";
+import { ProfileScreen } from "@/features/profile/ProfileScreen";
 
-export default function ProfileScreen() {
-  return <PlaceholderScreen title="Profil" ticket="KAN-16" />;
-}
+export default ProfileScreen;
