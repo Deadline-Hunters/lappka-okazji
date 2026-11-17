@@ -15,7 +15,7 @@ function tabIcon(name: IconName) {
   );
 }
 
-// App shell from KAN-11: Map · Deals · Coupons · Watchlist · Profile.
+// App shell from KAN-11: Map · Deals · Coupons · Profile.
 // Every tab gets the same AppHeader with its title as the screen name.
 export default function TabsLayout() {
   return (
@@ -38,13 +38,6 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="coupons"
         options={{ title: "Kupony", tabBarIcon: tabIcon("ticket-outline") }}
-      />
-      <Tabs.Screen
-        name="watchlist"
-        options={{
-          title: "Obserwowane",
-          tabBarIcon: tabIcon("bookmark-outline"),
-        }}
       />
       <Tabs.Screen
         name="profile"
