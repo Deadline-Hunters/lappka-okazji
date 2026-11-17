@@ -1,16 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { Alert, StyleSheet } from "react-native";
 
+import { Button } from "@/components/Button";
 import { supabase } from "@/lib/supabase";
-import { colors, radius, spacing } from "@/theme";
+import { spacing } from "@/theme";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -61,54 +55,20 @@ export function LogoutButton() {
   };
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.buttonPressed,
-        isLoggingOut && styles.buttonDisabled,
-      ]}
+    <Button
+      label="Wyloguj się"
+      icon="log-out-outline"
+      variant="surface"
       onPress={handlePress}
-      disabled={isLoggingOut}
-      accessibilityRole="button"
-      accessibilityLabel="Wyloguj się"
-    >
-      {isLoggingOut ? (
-        <ActivityIndicator size="small" color={colors.textMuted} />
-      ) : (
-        <>
-          <Ionicons name="log-out-outline" size={18} color={colors.textMuted} />
-          <Text style={styles.text}>Wyloguj się</Text>
-        </>
-      )}
-    </Pressable>
+      loading={isLoggingOut}
+      style={styles.button}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignSelf: "center",
     marginTop: spacing.sm,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-    backgroundColor: "#F9F8FC",
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  text: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textMuted,
   },
 });

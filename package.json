@@ -32,6 +32,6 @@
     "npm": ">=10"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,jsonc}": "prettier --check"
+    "*": "prettier --check --ignore-unknown"
   }
 }

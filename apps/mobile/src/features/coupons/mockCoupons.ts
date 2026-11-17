@@ -12,8 +12,6 @@ const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-costa",
     brandName: "Costa Coffee",
-    brandLogoUrl:
-      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F3EDE3",
     categoryLabel: "Kawiarnie stacjonarne",
     discountLabel: "-60%",
@@ -29,8 +27,6 @@ const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-pizza-hut",
     brandName: "Pizza Hut",
-    brandLogoUrl:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F6E2D8",
     categoryLabel: "Pizzerie • Dostawa i na miejscu",
     discountLabel: "-30%",
@@ -46,8 +42,6 @@ const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-kfc",
     brandName: "KFC",
-    brandLogoUrl:
-      "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F6E8DE",
     categoryLabel: "Fast Food • Na miejscu i z odbiorem",
     discountLabel: "-38%",
@@ -60,8 +54,6 @@ const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-bubble-tea",
     brandName: "Bubble Tea Kraków",
-    brandLogoUrl:
-      "https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#F3E3EC",
     categoryLabel: "Herbaciarnie • Na wynos",
     discountLabel: "2 za 1",
@@ -77,8 +69,6 @@ const createMockCoupons = (): Coupon[] => [
   {
     id: "coupon-cinema-city",
     brandName: "Cinema City",
-    brandLogoUrl:
-      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=200&q=80",
     brandLogoBackground: "#EDE6F3",
     categoryLabel: "Kina wielosalowe • 2D & 3D",
     title: "Bilet do kina w środy",

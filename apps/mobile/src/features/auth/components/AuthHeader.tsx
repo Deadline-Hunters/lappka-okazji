@@ -1,10 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 
-import { colors } from "@/theme";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { useAuthSession } from "@/lib/auth-session";
-import { authStyles } from "../authStyles";
 
 export function AuthHeader() {
   const { activateDevelopmentFlow } = useAuthSession();
@@ -23,8 +21,9 @@ export function AuthHeader() {
   };
 
   return (
-    <View style={authStyles.header}>
-      {
+    <ScreenHeader
+      title="Logowanie i rejestracja"
+      left={
         /*TODO(auth): Remove this development-only Pressable after the user auth flow is implemented.*/
         __DEV__ && (
           <Pressable
@@ -43,10 +42,6 @@ export function AuthHeader() {
           </Pressable>
         )
       }
-      <Text numberOfLines={1} style={authStyles.headerTitle}>
-        Logowanie i rejestracja
-      </Text>
-      <View style={authStyles.headerSpacer} />
-    </View>
+    />
   );
 }

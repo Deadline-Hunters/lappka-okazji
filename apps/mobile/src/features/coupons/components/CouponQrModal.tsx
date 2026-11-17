@@ -1,6 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Button } from "@/components/Button";
+import { IconButton } from "@/components/IconButton";
 import { colors, radius, spacing } from "@/theme";
 
 import type { Coupon } from "../types";
@@ -41,15 +42,14 @@ export function CouponQrModal({ coupon, visible, onClose }: Props) {
                 {coupon.title}
               </Text>
             </View>
-            <Pressable
+            <IconButton
+              icon="close"
+              variant="muted"
+              size="sm"
+              color={colors.textMuted}
               onPress={onClose}
-              hitSlop={10}
-              style={styles.closeIcon}
-              accessibilityRole="button"
               accessibilityLabel="Zamknij"
-            >
-              <Ionicons name="close" size={20} color={colors.textMuted} />
-            </Pressable>
+            />
           </View>
 
           <View style={styles.qrWrapper}>
@@ -58,13 +58,7 @@ export function CouponQrModal({ coupon, visible, onClose }: Props) {
 
           <Text style={styles.caption}>Pokaż ten kod przy kasie</Text>
 
-          <Pressable
-            onPress={onClose}
-            style={styles.doneButton}
-            accessibilityRole="button"
-          >
-            <Text style={styles.doneButtonText}>Gotowe</Text>
-          </Pressable>
+          <Button label="Gotowe" onPress={onClose} />
         </View>
       </View>
     </Modal>
@@ -112,14 +106,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: colors.textMuted,
   },
-  closeIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   qrWrapper: {
     alignItems: "center",
     justifyContent: "center",
@@ -134,17 +120,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
     color: colors.textMuted,
-  },
-  doneButton: {
-    minHeight: 46,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneButtonText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: colors.textInverse,
   },
 });

@@ -1,5 +1,9 @@
-export function formatTimeAgo(iso: string, now = Date.now()) {
-  const minutes = Math.floor((now - new Date(iso).getTime()) / 60_000);
+export function formatPrice(value: number) {
+  return `${value.toFixed(2).replace(".", ",")} zł`;
+}
+
+export function formatTimeAgo(isoDate: string, now = Date.now()) {
+  const minutes = Math.floor((now - new Date(isoDate).getTime()) / 60_000);
 
   if (minutes < 1) return "przed chwilą";
   if (minutes < 60) return `${minutes} min temu`;

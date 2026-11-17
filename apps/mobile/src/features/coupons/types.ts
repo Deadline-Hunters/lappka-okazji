@@ -44,10 +44,6 @@ export const COUPON_FILTERS: { id: CouponFilter; label: string }[] = [
 const ENDING_SOON_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function formatPrice(value: number) {
-  return `${value.toFixed(2).replace(".", ",")} zł`;
-}
-
 export function isEndingSoon(coupon: Coupon, now = Date.now()) {
   if (!coupon.validUntil) return false;
 

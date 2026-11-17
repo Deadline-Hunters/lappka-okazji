@@ -13,7 +13,6 @@ export interface UserProfileDto {
   firstName: string;
   lastName: string;
   username: string;
-  avatarUrl: string | null;
   isVerified: boolean;
   createdAt?: string;
 }

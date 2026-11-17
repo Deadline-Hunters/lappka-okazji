@@ -6,21 +6,25 @@ import {
   FlatList,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppTopBar } from "@/components/AppTopBar";
+import { EmptyState } from "@/components/EmptyState";
+import { FilterChips } from "@/components/FilterChips";
+import { SearchBar } from "@/components/SearchBar";
 import { Toast } from "@/components/Toast";
+import { matchesQuery } from "@/lib/search";
 import { colors, spacing } from "@/theme";
 
 import { CouponCard } from "./components/CouponCard";
 import { CouponQrModal } from "./components/CouponQrModal";
-import { CouponsFilterPills } from "./components/CouponsFilterPills";
-import { CouponsSearchBar } from "./components/CouponsSearchBar";
 import { fetchCoupons } from "./mockCoupons";
-import { isEndingSoon, type Coupon, type CouponFilter } from "./types";
+import {
+  COUPON_FILTERS,
+  isEndingSoon,
+  type Coupon,
+  type CouponFilter,
+} from "./types";
 
 const BACKGROUND_REFRESH_DELAY_MS = 5 * 60 * 1000;
 
@@ -30,7 +34,6 @@ type ToastState = {
 };
 
 export function CouponsScreen() {
-  const insets = useSafeAreaInsets();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,37 +93,38 @@ export function CouponsScreen() {
 
   const hideToast = useCallback(() => setToast(null), []);
 
-  const filteredCoupons = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+  const filteredCoupons = useMemo(
+    () =>
+      coupons.filter((coupon) => {
+        const matchesSearch = matchesQuery(
+          [
+            coupon.brandName,
+            coupon.title,
+            coupon.description,
+            coupon.categoryLabel,
+            coupon.discountLabel,
+            coupon.code,
+            coupon.qrCode,
+          ],
+          searchQuery,
+        );
+        if (!matchesSearch) {
+          return false;
+        }
 
-    return coupons.filter((coupon) => {
-      if (
-        query &&
-        ![
-          coupon.brandName,
-          coupon.title,
-          coupon.description,
-          coupon.categoryLabel,
-          coupon.discountLabel,
-          coupon.code,
-          coupon.qrCode,
-        ].some((value) => value?.toLowerCase().includes(query))
-      ) {
-        return false;
-      }
-
-      switch (filter) {
-        case "ending_soon":
-          return isEndingSoon(coupon);
-        case "code":
-          return Boolean(coupon.code);
-        case "qr":
-          return Boolean(coupon.qrCode);
-        default:
-          return true;
-      }
-    });
-  }, [coupons, searchQuery, filter]);
+        switch (filter) {
+          case "ending_soon":
+            return isEndingSoon(coupon);
+          case "code":
+            return Boolean(coupon.code);
+          case "qr":
+            return Boolean(coupon.qrCode);
+          default:
+            return true;
+        }
+      }),
+    [coupons, searchQuery, filter],
+  );
 
   const handleCopyCode = async (code: string) => {
     await Clipboard.setStringAsync(code);
@@ -140,29 +144,27 @@ export function CouponsScreen() {
     );
   };
 
-  const listEmpty = (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyTitle}>Brak kuponów</Text>
-      <Text style={styles.emptySubtitle}>
-        Nie znaleziono kuponów dla wybranej frazy lub filtra. Spróbuj zmienić
-        wyszukiwanie albo wybrać „Wszystkie”.
-      </Text>
-    </View>
-  );
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <AppTopBar
-          subtitle="Kupony"
-          onProfilePress={() =>
-            Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
-          }
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Szukaj kuponów (np. kawa, kino, KFC)"
+          onFilterPress={() => {
+            Alert.alert(
+              "Filtry",
+              "Filtrowanie zaawansowane (kategorie, uczelnie) w przygotowaniu.",
+            );
+          }}
         />
 
-        <CouponsSearchBar value={searchQuery} onChangeText={setSearchQuery} />
-
-        <CouponsFilterPills selected={filter} onSelect={setFilter} />
+        <FilterChips
+          options={COUPON_FILTERS}
+          selected={filter}
+          onSelect={setFilter}
+          contentContainerStyle={styles.chips}
+        />
       </View>
 
       <FlatList
@@ -176,7 +178,15 @@ export function CouponsScreen() {
             onDetailsPress={handleDetailsPress}
           />
         )}
-        ListEmptyComponent={isLoading ? undefined : listEmpty}
+        ListEmptyComponent={
+          isLoading ? undefined : (
+            <EmptyState
+              icon="ticket-outline"
+              title="Brak kuponów"
+              message="Nie znaleziono kuponów dla wybranej frazy lub filtra. Spróbuj zmienić wyszukiwanie albo wybrać „Wszystkie”."
+            />
+          )
+        }
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -224,22 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
-  emptyContainer: {
-    paddingVertical: spacing.xl * 2,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textMuted,
-    textAlign: "center",
+  chips: {
+    paddingRight: spacing.lg,
   },
 });

@@ -1,36 +1,20 @@
 import { useMemo, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 
+import { EmptyState } from "@/components/EmptyState";
+import { FilterChips } from "@/components/FilterChips";
+import { SearchBar } from "@/components/SearchBar";
 import { useUserLocation } from "@/features/map/useUserLocation";
 import { DEFAULT_CENTER, distanceInMeters } from "@/lib/geo";
 import { colors, spacing } from "@/theme";
 
 import { DealCard } from "./components/DealCard";
 import { DealsLocationBanner } from "./components/DealsLocationBanner";
-import { DealsSearchBar } from "./components/DealsSearchBar";
-import { DealsSortPills } from "./components/DealsSortPills";
-import { DealsTopBar } from "./components/DealsTopBar";
 import { MOCK_DEALS } from "./mockDeals";
-import type { Deal, DealSortOption } from "./types";
-
-const normalizeString = (str: string) => {
-  if (!str) return "";
-  return str
-    .toLowerCase()
-    .replace(/ą/g, "a")
-    .replace(/ć/g, "c")
-    .replace(/ę/g, "e")
-    .replace(/ł/g, "l")
-    .replace(/ń/g, "n")
-    .replace(/ó/g, "o")
-    .replace(/ś/g, "s")
-    .replace(/ź/g, "z")
-    .replace(/ż/g, "z");
-};
+import { matchesDealSearch } from "./search";
+import { DEAL_SORT_OPTIONS, type Deal, type DealSortOption } from "./types";
 
 export function DealsScreen() {
-  const insets = useSafeAreaInsets();
   const { location, refresh } = useUserLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<DealSortOption>("closest");
@@ -44,20 +28,8 @@ export function DealsScreen() {
 
   // Filtrowanie i sortowanie ofert
   const filteredAndSortedDeals = useMemo(() => {
-    let result = deals;
-
     // 1. Filtrowanie po tekście
-    if (searchQuery.trim()) {
-      const q = normalizeString(searchQuery.trim());
-      result = result.filter(
-        (deal) =>
-          normalizeString(deal.title).includes(q) ||
-          normalizeString(deal.storeName).includes(q) ||
-          normalizeString(deal.address).includes(q) ||
-          normalizeString(deal.description || "").includes(q) ||
-          normalizeString(deal.category).includes(q),
-      );
-    }
+    const result = deals.filter((deal) => matchesDealSearch(deal, searchQuery));
 
     // 2. Sortowanie
     return [...result].sort((a, b) => {
@@ -124,31 +96,14 @@ export function DealsScreen() {
     }
   };
 
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyTitle}>Brak okazji</Text>
-      <Text style={styles.emptySubtitle}>
-        Nie znaleziono ofert pasujących do „{searchQuery}”. Spróbuj użyć innych
-        słów kluczowych lub zmienić filtry.
-      </Text>
-    </View>
-  );
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Pasek górny, wyszukiwarka i filtry na stałe u góry */}
+    <View style={styles.container}>
+      {/* Wyszukiwarka i sortowanie na stałe u góry (pasek górny renderuje layout zakładek) */}
       <View style={styles.headerContainer}>
-        <DealsTopBar
-          onNotificationPress={() =>
-            Alert.alert("Powiadomienia", "Brak nowych powiadomień.")
-          }
-          onProfilePress={() =>
-            Alert.alert("Profil", "Przejdź do zakładki Profil na pasku dolnym.")
-          }
-        />
-        <DealsSearchBar
+        <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
+          placeholder="Szukaj okazji w okolicy (np. kawa, obiad, sł...)"
           onFilterPress={() => {
             Alert.alert(
               "Filtry",
@@ -156,7 +111,11 @@ export function DealsScreen() {
             );
           }}
         />
-        <DealsSortPills selected={sortBy} onSelect={setSortBy} />
+        <FilterChips
+          options={DEAL_SORT_OPTIONS}
+          selected={sortBy}
+          onSelect={setSortBy}
+        />
       </View>
 
       {/* Przewijalna lista kafelków */}
@@ -183,11 +142,18 @@ export function DealsScreen() {
             />
           </View>
         }
-        ListEmptyComponent={renderEmpty}
+        ListEmptyComponent={
+          <EmptyState
+            icon="search-outline"
+            title="Brak okazji"
+            message={`Nie znaleziono ofert pasujących do „${searchQuery}”. Spróbuj użyć innych słów kluczowych lub zmienić filtry.`}
+          />
+        }
         contentContainerStyle={styles.listContent}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -217,23 +183,5 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     marginBottom: spacing.xs,
-  },
-  emptyContainer: {
-    paddingVertical: spacing.xl * 2,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: "center",
-    lineHeight: 20,
   },
 });

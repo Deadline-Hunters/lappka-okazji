@@ -1,3 +1,4 @@
+import type { ChipOption } from "@/components/FilterChips";
 import type { LatLng } from "@/lib/geo";
 
 export type DealCategory =
@@ -5,6 +6,13 @@ export type DealCategory =
 
 export type DealSortOption =
   "closest" | "newest" | "biggest_discount" | "bookmarked";
+
+export const DEAL_SORT_OPTIONS: ChipOption<DealSortOption>[] = [
+  { id: "closest", label: "Najbliżej", icon: "navigate" },
+  { id: "newest", label: "Najnowsze", icon: "flash" },
+  { id: "biggest_discount", label: "Największe rabaty", icon: "flame" },
+  { id: "bookmarked", label: "Zapisane", icon: "bookmark" },
+];
 
 export type Deal = {
   id: string;
@@ -52,22 +60,4 @@ export function discountPercent(deal: Deal) {
   }
 
   return Math.round((1 - deal.price / deal.oldPrice) * 100);
-}
-
-export function formatPrice(value: number) {
-  return `${value.toFixed(2).replace(".", ",")} zł`;
-}
-
-export function formatTimeAgo(isoDate: string, now = Date.now()) {
-  const diffMs = now - new Date(isoDate).getTime();
-  const diffMinutes = Math.floor(diffMs / 60_000);
-
-  if (diffMinutes < 1) return "przed chwilą";
-  if (diffMinutes < 60) return `${diffMinutes} min temu`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours} godz. temu`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays} dni temu`;
 }

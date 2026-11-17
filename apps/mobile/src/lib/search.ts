@@ -1,5 +1,3 @@
-import { CATEGORIES, type Deal } from "@/features/deals/types";
-
 const POLISH_LETTERS: Record<string, string> = {
   ą: "a",
   ć: "c",
@@ -19,22 +17,16 @@ export function normalizeText(text: string) {
     .replace(/[ąćęłńóśźż]/g, (letter) => POLISH_LETTERS[letter] ?? letter);
 }
 
-// Every word of the query has to appear somewhere in the deal (title, description, store, address, category).
-export function matchesSearch(deal: Deal, query: string) {
+// Every word of the query has to appear somewhere in the given fields. An empty query matches everything.
+export function matchesQuery(
+  fields: readonly (string | null | undefined)[],
+  query: string,
+) {
   const words = normalizeText(query).split(/\s+/).filter(Boolean);
   if (words.length === 0) {
     return true;
   }
 
-  const text = normalizeText(
-    [
-      deal.title,
-      deal.description ?? "",
-      deal.storeName,
-      deal.address,
-      CATEGORIES[deal.category].label,
-    ].join(" "),
-  );
-
+  const text = normalizeText(fields.filter(Boolean).join(" "));
   return words.every((word) => text.includes(word));
 }

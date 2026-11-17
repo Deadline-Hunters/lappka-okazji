@@ -1,10 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleSheet, Text, View } from "react-native";
 
+import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
+import { PriceTag } from "@/components/PriceTag";
 import { colors, radius, spacing } from "@/theme";
 
-import { formatPrice, type Coupon } from "../types";
+import type { Coupon } from "../types";
 
 type Props = {
   coupon: Coupon;
@@ -58,7 +61,7 @@ export function CouponCard({
   const validityLabel = formatValidity(coupon.validUntil);
 
   return (
-    <View style={styles.card}>
+    <Card>
       <View style={styles.header}>
         <View
           style={[
@@ -81,9 +84,7 @@ export function CouponCard({
           <View style={styles.brandTopRow}>
             <Text style={styles.brandName}>{coupon.brandName}</Text>
             {validityLabel ? (
-              <View style={styles.validityPill}>
-                <Text style={styles.validityPillText}>{validityLabel}</Text>
-              </View>
+              <Badge label={validityLabel} tone="muted" />
             ) : null}
           </View>
 
@@ -93,25 +94,13 @@ export function CouponCard({
 
       <Text style={styles.title}>{coupon.title}</Text>
 
-      {coupon.price != null ||
-      coupon.oldPrice != null ||
-      coupon.discountLabel ? (
-        <View style={styles.priceRow}>
-          {coupon.price != null ? (
-            <Text style={styles.currentPrice}>{formatPrice(coupon.price)}</Text>
-          ) : null}
-          {coupon.oldPrice != null ? (
-            <Text style={styles.oldPrice}>{formatPrice(coupon.oldPrice)}</Text>
-          ) : null}
-          {coupon.discountLabel ? (
-            <View style={styles.discountPill}>
-              <Text style={styles.discountPillText}>
-                {coupon.discountLabel}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
+      <PriceTag
+        price={coupon.price}
+        oldPrice={coupon.oldPrice}
+        discountLabel={coupon.discountLabel}
+        size="sm"
+        style={styles.priceRow}
+      />
 
       {coupon.description ? (
         <Text style={styles.description}>{coupon.description}</Text>
@@ -138,23 +127,11 @@ export function CouponCard({
         onPress={() => onDetailsPress?.(coupon)}
         style={styles.cardButton}
       />
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
-  },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -201,20 +178,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 16,
   },
-  validityPill: {
-    maxWidth: 165,
-    flexShrink: 0,
-    backgroundColor: colors.surfaceMuted,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
-  validityPillText: {
-    fontSize: 10.5,
-    fontWeight: "700",
-    lineHeight: 13,
-    color: colors.textMuted,
-  },
   title: {
     marginTop: spacing.md,
     fontSize: 19,
@@ -224,33 +187,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: spacing.sm,
     marginTop: spacing.xs,
-  },
-  currentPrice: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: colors.price,
-  },
-  oldPrice: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textMuted,
-    textDecorationLine: "line-through",
-  },
-  discountPill: {
-    backgroundColor: colors.highlight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-  },
-  discountPillText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colors.highlightText,
   },
   description: {
     marginTop: spacing.sm,
