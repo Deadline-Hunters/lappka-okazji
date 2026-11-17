@@ -51,8 +51,8 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 - There is no lint or test step. CI (`.github/workflows/ci.yml`) runs `npm ci`,
   then `format:check`, then `typecheck` on every PR and on pushes to `develop`,
   `test` and `main`.
-- The pre-commit hook runs `lint-staged` (Prettier check on staged files), then
-  `git diff --check --cached`, then `typecheck`. Don't skip it.
+- The pre-commit hook runs `lint-staged` (Prettier check on the staged files),
+  then `git diff --check --cached`, then `typecheck`. Don't skip it.
 - Run `npm run format` and `npm run typecheck` before calling a task done.
 
 ## Rules
