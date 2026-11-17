@@ -63,3 +63,28 @@ export const spacing = {
   lg: 16,
   xl: 24,
 } as const;
+
+// Elevation presets: `sm` for inputs and chips, `md` for list cards, `lg` for cards floating over the map.
+export const shadows = {
+  sm: {
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  md: {
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+} as const;
