@@ -1,10 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import type { ComponentProps } from "react";
 
+import { AppHeader } from "@/components/AppHeader";
+import type { IconName } from "@/components/icons";
 import { colors } from "@/theme";
-
-type IconName = ComponentProps<typeof Ionicons>["name"];
 
 function tabIcon(name: IconName) {
   return ({ color, size }: { color: unknown; size: number }) => (
@@ -16,40 +15,29 @@ function tabIcon(name: IconName) {
   );
 }
 
-// Navigation skeleton from KAN-11: Map · Deals · Coupons · Watchlist · Profile.
+// App shell from KAN-11: Map · Deals · Coupons · Watchlist · Profile.
+// Every tab gets the same AppHeader with its title as the screen name.
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
+        header: ({ options }) => <AppHeader title={options.title ?? ""} />,
         tabBarActiveTintColor: colors.primaryDark,
         tabBarInactiveTintColor: colors.textMuted,
-        headerTitleStyle: { fontWeight: "700", color: colors.text },
         sceneStyle: { backgroundColor: colors.background },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Mapa",
-          headerShown: false,
-          tabBarIcon: tabIcon("map-outline"),
-        }}
+        options={{ title: "Mapa", tabBarIcon: tabIcon("map-outline") }}
       />
       <Tabs.Screen
         name="deals"
-        options={{
-          title: "Okazje",
-          headerShown: false,
-          tabBarIcon: tabIcon("flame-outline"),
-        }}
+        options={{ title: "Okazje", tabBarIcon: tabIcon("flame-outline") }}
       />
       <Tabs.Screen
         name="coupons"
-        options={{
-          title: "Kupony",
-          headerShown: false,
-          tabBarIcon: tabIcon("ticket-outline"),
-        }}
+        options={{ title: "Kupony", tabBarIcon: tabIcon("ticket-outline") }}
       />
       <Tabs.Screen
         name="watchlist"

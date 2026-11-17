@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
+import { Avatar } from "@/components/Avatar";
+import { Card } from "@/components/Card";
 import { colors, radius, spacing } from "@/theme";
 
 import type { ProfileStatsDto, UserProfileDto } from "../types";
@@ -13,32 +14,17 @@ interface Props {
 }
 
 export function UserProfileCard({ user, stats }: Props) {
-  const [imageError, setImageError] = useState(false);
-
   const fullName = `${user.firstName} ${user.lastName}`.trim();
-  const initials =
-    `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
 
   return (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       {/* Decorative pastel glow at the top-left of the card */}
       <View style={styles.decorativeGlow} pointerEvents="none" />
 
       {/* Main section with user avatar and basic info */}
       <View style={styles.userHeader}>
         <View style={styles.avatarContainer}>
-          {user.avatarUrl && !imageError ? (
-            <Image
-              source={{ uri: user.avatarUrl }}
-              style={styles.avatarImage}
-              onError={() => setImageError(true)}
-              accessibilityLabel={`Zdjęcie profilowe: ${fullName}`}
-            />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarFallbackText}>{initials}</Text>
-            </View>
-          )}
+          <Avatar uri={user.avatarUrl} name={fullName} size={70} />
         </View>
 
         <View style={styles.userInfo}>
@@ -61,22 +47,14 @@ export function UserProfileCard({ user, stats }: Props) {
 
       {/* User statistics row */}
       <ProfileStats stats={stats} />
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
     borderRadius: 28,
     padding: spacing.lg + 2,
-    shadowColor: "#1E1B24",
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: "#EFEBF5",
     overflow: "hidden",
     position: "relative",
     gap: spacing.lg,
@@ -107,25 +85,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: radius.pill,
-    backgroundColor: "#F0EDF5",
-  },
-  avatarFallback: {
-    width: "100%",
-    height: "100%",
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarFallbackText: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.primaryDark,
   },
   userInfo: {
     flex: 1,

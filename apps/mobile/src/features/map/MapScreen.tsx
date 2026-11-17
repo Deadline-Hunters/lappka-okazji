@@ -1,25 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Keyboard,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Keyboard, Linking, StyleSheet, Text, View } from "react-native";
 
+import { IconButton } from "@/components/IconButton";
+import { SearchBar } from "@/components/SearchBar";
 import { MOCK_DEALS } from "@/features/deals/mockDeals";
+import { matchesDealSearch } from "@/features/deals/search";
 import { CATEGORIES, discountPercent, isFresh } from "@/features/deals/types";
 import { DEFAULT_CENTER, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
 
 import { DealPreviewCard } from "./DealPreviewCard";
 import DealsMap from "./DealsMap";
-import { MapHeader } from "./MapHeader";
-import { MapSearchBar } from "./MapSearchBar";
-import { matchesSearch } from "./search";
 import type { CameraTarget, MapMarker, Vote } from "./types";
 import { useUserLocation } from "./useUserLocation";
 
@@ -28,7 +19,6 @@ const USER_ZOOM = 16;
 const SEARCH_CAMERA_DELAY_MS = 500;
 
 export function MapScreen() {
-  const insets = useSafeAreaInsets();
   const [camera, setCamera] = useState<CameraTarget | null>(null);
   const flyTo = useCallback((location: LatLng, zoom?: number) => {
     setCamera((previous) => ({
@@ -63,7 +53,7 @@ export function MapScreen() {
 
   const deals = MOCK_DEALS;
   const visibleDeals = useMemo(
-    () => deals.filter((deal) => matchesSearch(deal, query)),
+    () => deals.filter((deal) => matchesDealSearch(deal, query)),
     [deals, query],
   );
   // A deal hidden by the search also closes its card.
@@ -159,9 +149,7 @@ export function MapScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <MapHeader />
-
+    <View style={styles.container}>
       <View style={styles.mapArea}>
         <DealsMap
           initialCenter={DEFAULT_CENTER}
@@ -176,7 +164,13 @@ export function MapScreen() {
         />
 
         <View style={styles.overlay}>
-          <MapSearchBar value={query} onChangeText={setQuery} />
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Szukaj okazji w okolicy (np. kawa)"
+            accessibilityLabel="Szukaj okazji"
+            elevated
+          />
 
           <View style={styles.overlayRow}>
             <View style={styles.notices}>
@@ -198,14 +192,14 @@ export function MapScreen() {
               ) : null}
             </View>
 
-            <Pressable
-              style={styles.controlButton}
+            <IconButton
+              icon="locate"
+              variant="surface"
+              size="lg"
+              color={colors.accent}
               onPress={handleRecenter}
-              accessibilityRole="button"
               accessibilityLabel="Wycentruj na mojej pozycji"
-            >
-              <Ionicons name="locate" size={22} color={colors.accent} />
-            </Pressable>
+            />
           </View>
         </View>
 
@@ -275,16 +269,6 @@ const styles = StyleSheet.create({
   noticeText: {
     fontSize: 13,
     color: colors.text,
-  },
-  controlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    ...shadow,
   },
   preview: {
     position: "absolute",

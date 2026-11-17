@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
-import { formatPrice } from "@/features/deals/types";
+import { Card } from "@/components/Card";
+import { PriceTag } from "@/components/PriceTag";
 import { colors, radius, spacing } from "@/theme";
 
 import type { MySubmissionDto } from "../types";
@@ -32,7 +33,7 @@ export function SubmissionCard({ submission }: Props) {
     : submission.storeName;
 
   return (
-    <View style={styles.card}>
+    <Card elevation="sm" style={styles.card}>
       {/* Top row: category icon, title, store name, status badge */}
       <View style={styles.topRow}>
         <View
@@ -65,44 +66,26 @@ export function SubmissionCard({ submission }: Props) {
 
       {/* Bottom row: prices, discount badge, and submission time */}
       <View style={styles.bottomRow}>
-        <View style={styles.priceContainer}>
-          <Text style={styles.price}>{formatPrice(submission.price)}</Text>
-
-          {submission.oldPrice != null && (
-            <Text style={styles.oldPrice}>
-              {formatPrice(submission.oldPrice)}
-            </Text>
-          )}
-
-          {discountText && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>{discountText}</Text>
-            </View>
-          )}
-        </View>
+        <PriceTag
+          price={submission.price}
+          oldPrice={submission.oldPrice}
+          discountLabel={discountText}
+          size="lg"
+          tone="default"
+        />
 
         <View style={styles.timeContainer}>
           <Ionicons name="time-outline" size={14} color={colors.textMuted} />
           <Text style={styles.timeText}>{formattedTime}</Text>
         </View>
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: spacing.lg,
     marginBottom: spacing.md,
-    shadowColor: "#1E1B24",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F0EDF5",
   },
   topRow: {
     flexDirection: "row",
@@ -135,36 +118,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: spacing.md + 2,
-  },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    flexWrap: "wrap",
-    flexShrink: 1,
-  },
-  price: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.text,
-    letterSpacing: -0.5,
-  },
-  oldPrice: {
-    fontSize: 14,
-    color: "#8E8A96",
-    textDecorationLine: "line-through",
-  },
-  discountBadge: {
-    backgroundColor: "#E2F674",
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: radius.sm,
-  },
-  discountText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#3F5600",
-    letterSpacing: -0.2,
   },
   timeContainer: {
     flexDirection: "row",

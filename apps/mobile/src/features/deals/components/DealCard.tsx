@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import {
-  CATEGORIES,
-  formatPrice,
-  formatTimeAgo,
-  type Deal,
-} from "@/features/deals/types";
+import { Badge } from "@/components/Badge";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
+import { IconButton } from "@/components/IconButton";
+import { PriceTag } from "@/components/PriceTag";
+import { CATEGORIES, type Deal } from "@/features/deals/types";
+import { formatHunters, formatTimeAgo } from "@/lib/format";
 import { distanceInMeters, formatDistance, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
 
@@ -22,41 +22,25 @@ type Props = {
 export function DealCard({
   deal,
   userLocation,
-  isBookmarked,
+  isBookmarked = false,
   onBookmarkToggle,
   onPress,
 }: Props) {
-  const [bookmarked, setBookmarked] = useState(isBookmarked ?? false);
   const category = CATEGORIES[deal.category] ?? CATEGORIES.inne;
-  const discount = null;
   const distance = userLocation
     ? formatDistance(distanceInMeters(userLocation, deal.location))
     : null;
-
-  const handleBookmarkPress = () => {
-    setBookmarked((prev) => !prev);
-    onBookmarkToggle?.(deal.id);
-  };
 
   const handleCardPress = () => {
     onPress(deal);
   };
 
-  const badgeText = deal.badgeText ?? (discount ? `-${discount}%` : undefined);
-  const buttonText = "Przejdź do okazji";
-
   return (
-    <Pressable
-      style={styles.card}
-      onPress={handleCardPress}
-      accessibilityRole="button"
-    >
-      <View style={styles.cardContainer}>
+    <Pressable onPress={handleCardPress} accessibilityRole="button">
+      <Card style={styles.card}>
         {/* Nagłówek: ikona kategorii + sklep/adres + dystans + czas dodania + tagi/rabat */}
         <View style={styles.header}>
-          <View
-            style={[styles.iconCircle, { backgroundColor: colors.accentSoft }]}
-          >
+          <View style={styles.iconCircle}>
             <Text style={styles.categoryEmoji}>{category.emoji}</Text>
           </View>
 
@@ -66,32 +50,20 @@ export function DealCard({
                 {deal.storeName}
               </Text>
               <View style={styles.badgesWrapper}>
-                {deal.category ? (
-                  <View style={styles.tagBadge}>
-                    <Text style={styles.tagBadgeText}>{deal.category}</Text>
-                  </View>
-                ) : null}
-                {badgeText ? (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountBadgeText}>{badgeText}</Text>
-                  </View>
-                ) : null}
-                <Pressable
-                  onPress={handleBookmarkPress}
-                  hitSlop={8}
-                  style={styles.bookmarkButton}
+                <Badge label={category.label} tone="accent" />
+                {deal.badgeText ? <Badge label={deal.badgeText} /> : null}
+                <IconButton
+                  icon={isBookmarked ? "bookmark" : "bookmark-outline"}
+                  size="sm"
+                  color={isBookmarked ? colors.primary : colors.textMuted}
+                  onPress={() => onBookmarkToggle?.(deal.id)}
                   accessibilityLabel={
-                    bookmarked
+                    isBookmarked
                       ? "Usuń z obserwowanych"
                       : "Dodaj do obserwowanych"
                   }
-                >
-                  <Ionicons
-                    name={bookmarked ? "bookmark" : "bookmark-outline"}
-                    size={18}
-                    color={bookmarked ? colors.primary : colors.textMuted}
-                  />
-                </Pressable>
+                  accessibilityState={{ selected: isBookmarked }}
+                />
               </View>
             </View>
 
@@ -106,17 +78,8 @@ export function DealCard({
         {/* Tylko tytuł okazji */}
         <Text style={styles.titleText}>{deal.title}</Text>
 
-        {/* Tylko aktualna i przekreślona stara cena (bez nawiasów i dopisków) */}
-        {deal.price > 0 ? (
-          <View style={styles.priceRow}>
-            <Text style={styles.currentPrice}>{formatPrice(deal.price)}</Text>
-            {deal.oldPrice ? (
-              <Text style={styles.oldPrice}>{formatPrice(deal.oldPrice)}</Text>
-            ) : null}
-          </View>
-        ) : deal.price === 0 ? (
-          <Text style={styles.currentPrice}>GRATIS!</Text>
-        ) : null}
+        {/* Aktualna i przekreślona stara cena */}
+        <PriceTag price={deal.price} oldPrice={deal.oldPrice} size="md" />
 
         {/* Stopka: potwierdzenia społeczne + przycisk akcji */}
         <View style={styles.footer}>
@@ -127,32 +90,24 @@ export function DealCard({
               color={colors.primary}
             />
             <Text style={styles.confirmationsText}>
-              Potwierdzone przez {deal.confirmations} łowców
+              Potwierdzone przez {formatHunters(deal.confirmations)}
             </Text>
           </View>
 
-          <View style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>{buttonText}</Text>
-          </View>
+          <Button
+            label="Przejdź do okazji"
+            variant="tonal"
+            size="sm"
+            onPress={handleCardPress}
+          />
         </View>
-      </View>
+      </Card>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardContainer: {
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -167,6 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.accentSoft,
   },
   categoryEmoji: {
     fontSize: 22,
@@ -192,31 +148,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     flexShrink: 0,
   },
-  tagBadge: {
-    backgroundColor: colors.accentSoft,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-  },
-  tagBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.accent,
-  },
-  discountBadge: {
-    backgroundColor: colors.badgeDiscountBg,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-  },
-  discountBadgeText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: colors.badgeDiscountText,
-  },
-  bookmarkButton: {
-    paddingLeft: 2,
-  },
   metaSubText: {
     fontSize: 11,
     color: colors.textMuted,
@@ -227,22 +158,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
     lineHeight: 22,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: spacing.sm,
-    marginTop: 2,
-  },
-  currentPrice: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: colors.priceHighlight,
-  },
-  oldPrice: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textDecorationLine: "line-through",
   },
   footer: {
     flexDirection: "row",
@@ -261,16 +176,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: colors.primaryDark,
-  },
-  actionButton: {
-    backgroundColor: colors.actionButtonBg,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-  },
-  actionButtonText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colors.actionButtonText,
   },
 });

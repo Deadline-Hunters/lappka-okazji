@@ -1,5 +1,4 @@
-// Basic tokens based on the Figma mockups.
-// TODO: To be extended in KAN-11.
+// Design tokens based on the Figma mockups. Shared UI components live in `@/components`.
 
 export const colors = {
   background: "#F7F5FB",
@@ -22,7 +21,7 @@ export const colors = {
   highlightText: "#384705",
   // Emphasis color for the current price.
   price: "#99AA18",
-  // High-contrast dark used for selected pills, toasts, and QR modules.
+  // High-contrast dark used for selected chips, toasts, and QR modules.
   neutralDark: "#161B2E",
   // Translucent layer behind modals.
   backdrop: "rgba(22, 17, 28, 0.55)",
@@ -33,17 +32,11 @@ export const colors = {
   inverseSurface: "#283044",
   outline: "#8C7164",
 
-  // Figma tokens for Deals & badges:
-  badgeDiscountBg: "#E4F26B",
-  badgeDiscountText: "#384705",
-  priceHighlight: "#99AA18",
-  activeFilterBg: "#161B2E",
-  activeFilterText: "#FFFFFF",
-  inactiveFilterBg: "#ECE8F5",
+  // Text of an unselected filter chip.
   inactiveFilterText: "#423E4D",
   locationBannerBg: "#FDF0E6",
   locationBannerBorder: "#F9DEC9",
-  locationIconBg: "#D2733A",
+  // Soft orange "tonal" button, e.g. "Przejdź do okazji".
   actionButtonBg: "#FEDBC7",
   actionButtonText: "#7A3511",
 } as const;

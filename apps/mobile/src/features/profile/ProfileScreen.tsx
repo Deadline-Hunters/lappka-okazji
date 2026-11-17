@@ -1,18 +1,16 @@
-import { useState } from "react";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { useMemo, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
+import {
+  SegmentedControl,
+  type SegmentOption,
+} from "@/components/SegmentedControl";
 import { colors, spacing } from "@/theme";
 
 import { LogoutButton } from "./components/LogoutButton";
 import { MySubmissionsList } from "./components/MySubmissionsList";
-import { ProfileTabs } from "./components/ProfileTabs";
 import { RadarSettingsPlaceholder } from "./components/RadarSettingsPlaceholder";
 import { UserProfileCard } from "./components/UserProfileCard";
 import { useProfile } from "./hooks/useProfile";
@@ -21,22 +19,36 @@ import type { ProfileTab } from "./types";
 export function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("submissions");
   const { profile, isLoading, error, refetch } = useProfile();
+  const submissionsCount = profile?.stats.submissionsCount;
+
+  const tabs = useMemo<SegmentOption<ProfileTab>[]>(
+    () => [
+      {
+        id: "submissions",
+        label:
+          submissionsCount != null
+            ? `Moje zgłoszenia (${submissionsCount})`
+            : "Moje zgłoszenia",
+      },
+      { id: "radar", label: "Ustawienia radaru" },
+    ],
+    [submissionsCount],
+  );
 
   if (isLoading && !profile) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Ładowanie profilu...</Text>
-      </View>
-    );
+    return <LoadingState message="Ładowanie profilu..." fill />;
   }
 
   if (error && !profile) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>Nie udało się załadować profilu</Text>
-        <Text style={styles.errorSubtitle}>{error.message}</Text>
-      </View>
+      <EmptyState
+        icon="alert-circle-outline"
+        tone="danger"
+        title="Nie udało się załadować profilu"
+        message={error.message}
+        action={{ label: "Spróbuj ponownie", onPress: refetch }}
+        fill
+      />
     );
   }
 
@@ -62,10 +74,10 @@ export function ProfileScreen() {
       <UserProfileCard user={profile.user} stats={profile.stats} />
 
       {/* Tab selector */}
-      <ProfileTabs
-        activeTab={activeTab}
-        onChangeTab={setActiveTab}
-        submissionsCount={profile.stats.submissionsCount}
+      <SegmentedControl
+        options={tabs}
+        value={activeTab}
+        onChange={setActiveTab}
       />
 
       {/* Selected tab content */}
@@ -95,28 +107,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xl * 3,
     gap: spacing.lg,
-  },
-  centerContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
-    gap: spacing.md,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.danger,
-    textAlign: "center",
-  },
-  errorSubtitle: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: "center",
   },
 });

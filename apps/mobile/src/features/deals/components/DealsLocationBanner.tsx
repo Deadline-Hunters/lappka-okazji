@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.pill,
-    backgroundColor: colors.locationIconBg,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },

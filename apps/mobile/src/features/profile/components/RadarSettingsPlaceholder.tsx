@@ -1,19 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
+import { Badge } from "@/components/Badge";
+import { Card } from "@/components/Card";
 import { colors, radius, spacing } from "@/theme";
 
 export function RadarSettingsPlaceholder() {
   return (
-    <View style={styles.card}>
+    <Card elevation="sm" style={styles.card}>
       {/* Header and status badge */}
       <View style={styles.header}>
         <View style={styles.iconCircle}>
           <Ionicons name="radio-outline" size={30} color={colors.accent} />
         </View>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>W przygotowaniu</Text>
-        </View>
+        <Badge label="W przygotowaniu" tone="primary" size="md" />
       </View>
 
       <Text style={styles.title}>Ustawienia radaru okazji</Text>
@@ -70,23 +70,14 @@ export function RadarSettingsPlaceholder() {
           </View>
         </View>
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
     padding: spacing.xl,
     alignItems: "center",
-    shadowColor: "#1E1B24",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#F0EDF5",
     gap: spacing.md,
   },
   header: {
@@ -100,17 +91,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEF3FC",
     alignItems: "center",
     justifyContent: "center",
-  },
-  badge: {
-    backgroundColor: colors.primarySoft,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.primaryDark,
   },
   title: {
     fontSize: 18,
