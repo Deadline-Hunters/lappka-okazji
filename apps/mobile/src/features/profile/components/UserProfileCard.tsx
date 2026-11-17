@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
-import { Avatar } from "@/components/Avatar";
 import { Card } from "@/components/Card";
 import { colors, radius, spacing } from "@/theme";
 
@@ -21,12 +20,8 @@ export function UserProfileCard({ user, stats }: Props) {
       {/* Decorative pastel glow at the top-left of the card */}
       <View style={styles.decorativeGlow} pointerEvents="none" />
 
-      {/* Main section with user avatar and basic info */}
+      {/* Basic user info. No profile photo: the profile is for points and history, not a social profile. */}
       <View style={styles.userHeader}>
-        <View style={styles.avatarContainer}>
-          <Avatar uri={user.avatarUrl} name={fullName} size={70} />
-        </View>
-
         <View style={styles.userInfo}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>
@@ -73,18 +68,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.lg,
-  },
-  avatarContainer: {
-    width: 76,
-    height: 76,
-    borderRadius: radius.pill,
-    padding: 3,
-    backgroundColor: "#FCECD4",
-    shadowColor: "#E0A030",
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
   },
   userInfo: {
     flex: 1,

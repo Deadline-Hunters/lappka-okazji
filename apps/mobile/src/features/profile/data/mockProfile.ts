@@ -30,8 +30,6 @@ export const MOCK_PROFILE: ProfileDto = {
     firstName: "Kamil",
     lastName: "Kowalski",
     username: "Kamil_PK",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&q=80",
     isVerified: true,
     createdAt: "2025-01-15T10:00:00.000Z",
   },

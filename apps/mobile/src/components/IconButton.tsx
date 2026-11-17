@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import type { AccessibilityState, StyleProp, ViewStyle } from "react-native";
 
 import { colors, radius, shadows } from "@/theme";
 
 import type { IconName } from "./icons";
 
-// plain - icon only (header bell, bookmark), muted - soft grey circle (modal close),
+// plain - icon only (bookmark), muted - soft grey circle (modal close),
 // surface - white floating circle (map controls).
 export type IconButtonVariant = "plain" | "muted" | "surface";
 
@@ -18,8 +18,6 @@ type Props = {
   variant?: IconButtonVariant;
   size?: "sm" | "md" | "lg";
   color?: string;
-  // Small dot in the corner, e.g. unread notifications.
-  showDot?: boolean;
   disabled?: boolean;
   accessibilityState?: AccessibilityState;
   style?: StyleProp<ViewStyle>;
@@ -38,7 +36,6 @@ export function IconButton({
   variant = "plain",
   size = "md",
   color = colors.text,
-  showDot = false,
   disabled = false,
   accessibilityState,
   style,
@@ -66,7 +63,6 @@ export function IconButton({
       ]}
     >
       <Ionicons name={icon} size={metrics.icon} color={color} />
-      {showDot ? <View style={styles.dot} /> : null}
     </Pressable>
   );
 }
@@ -91,16 +87,5 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5,
-  },
-  dot: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 9,
-    height: 9,
-    borderRadius: radius.pill,
-    backgroundColor: colors.highlight,
-    borderWidth: 1.5,
-    borderColor: colors.surface,
   },
 });

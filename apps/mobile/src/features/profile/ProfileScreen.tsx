@@ -70,7 +70,7 @@ export function ProfileScreen() {
         />
       }
     >
-      {/* User profile card with avatar, details, and statistics */}
+      {/* User profile card with details and statistics */}
       <UserProfileCard user={profile.user} stats={profile.stats} />
 
       {/* Tab selector */}
