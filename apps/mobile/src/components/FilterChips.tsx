@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 
-import { colors, radius, spacing } from "@/theme";
+import { colors, radius, shadows, spacing } from "@/theme";
 
 import type { IconName } from "./icons";
 
@@ -20,6 +20,8 @@ type ChipProps = {
   onPress: () => void;
   icon?: IconName;
   emoji?: string;
+  // White chip with a shadow - for chips floating over the map.
+  elevated?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -30,6 +32,7 @@ export function Chip({
   onPress,
   icon,
   emoji,
+  elevated = false,
   style,
 }: ChipProps) {
   const foreground = selected ? colors.textInverse : colors.inactiveFilterText;
@@ -39,7 +42,12 @@ export function Chip({
       onPress={onPress}
       style={({ pressed }) => [
         styles.chip,
-        selected ? styles.chipSelected : styles.chipIdle,
+        selected
+          ? styles.chipSelected
+          : elevated
+            ? styles.chipIdleElevated
+            : styles.chipIdle,
+        elevated ? shadows.sm : null,
         pressed ? styles.pressed : null,
         style,
       ]}
@@ -60,6 +68,8 @@ type Props<T extends string> = {
   options: readonly ChipOption<T>[];
   selected: T;
   onSelect: (id: T) => void;
+  elevated?: boolean;
+  style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -68,6 +78,8 @@ export function FilterChips<T extends string>({
   options,
   selected,
   onSelect,
+  elevated = false,
+  style,
   contentContainerStyle,
 }: Props<T>) {
   return (
@@ -75,6 +87,7 @@ export function FilterChips<T extends string>({
       horizontal
       showsHorizontalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      style={style}
       contentContainerStyle={[styles.row, contentContainerStyle]}
       accessibilityRole="radiogroup"
     >
@@ -84,6 +97,7 @@ export function FilterChips<T extends string>({
           label={option.label}
           icon={option.icon}
           emoji={option.emoji}
+          elevated={elevated}
           selected={option.id === selected}
           onPress={() => onSelect(option.id)}
         />
@@ -111,6 +125,9 @@ const styles = StyleSheet.create({
   },
   chipIdle: {
     backgroundColor: colors.surfaceMuted,
+  },
+  chipIdleElevated: {
+    backgroundColor: colors.surface,
   },
   pressed: {
     opacity: 0.8,

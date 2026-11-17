@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Linking, StyleSheet, Text, View } from "react-native";
 
+import { FilterChips } from "@/components/FilterChips";
+import { FilterSheet } from "@/components/FilterSheet";
 import { IconButton } from "@/components/IconButton";
 import { SearchBar } from "@/components/SearchBar";
+import {
+  CATEGORY_FILTER_OPTIONS,
+  matchesCategory,
+  quickCategoryOptions,
+  type CategoryFilter,
+} from "@/features/deals/categories";
 import { MOCK_DEALS } from "@/features/deals/mockDeals";
 import { matchesDealSearch } from "@/features/deals/search";
 import { CATEGORIES, discountPercent, isFresh } from "@/features/deals/types";
@@ -17,6 +25,14 @@ import { useUserLocation } from "./useUserLocation";
 const USER_ZOOM = 16;
 // Wait until the user stops typing before moving the camera to the search results.
 const SEARCH_CAMERA_DELAY_MS = 500;
+
+function emptyResultsMessage(query: string, category: CategoryFilter) {
+  const inCategory =
+    category === "all" ? "" : ` w kategorii „${CATEGORIES[category].label}”`;
+  return query
+    ? `Brak okazji pasujących do „${query}”${inCategory}.`
+    : `Brak okazji${inCategory}.`;
+}
 
 export function MapScreen() {
   const [camera, setCamera] = useState<CameraTarget | null>(null);
@@ -48,22 +64,33 @@ export function MapScreen() {
   const { location, status, refresh } = useUserLocation();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<CategoryFilter>("all");
+  const [filtersVisible, setFiltersVisible] = useState(false);
   const [votes, setVotes] = useState<Record<string, Vote>>({});
   const hasCenteredOnUser = useRef(false);
 
   const deals = MOCK_DEALS;
   const visibleDeals = useMemo(
-    () => deals.filter((deal) => matchesDealSearch(deal, query)),
-    [deals, query],
+    () =>
+      deals.filter(
+        (deal) =>
+          matchesCategory(deal, category) && matchesDealSearch(deal, query),
+      ),
+    [deals, query, category],
   );
-  // A deal hidden by the search also closes its card.
+  const categoryOptions = useMemo(
+    () => quickCategoryOptions(deals, category),
+    [deals, category],
+  );
+  // A deal hidden by the search or the category filter also closes its card.
   const selectedDeal =
     visibleDeals.find((deal) => deal.id === selectedDealId) ?? null;
   const trimmedQuery = query.trim();
+  const isFiltering = trimmedQuery !== "" || category !== "all";
 
-  // Bring the search results into view - they can be outside the visible part of the map.
+  // Bring the results into view - they can be outside the visible part of the map.
   useEffect(() => {
-    if (!trimmedQuery || visibleDeals.length === 0) return;
+    if (!isFiltering || visibleDeals.length === 0) return;
 
     const timer = setTimeout(() => {
       if (visibleDeals.length === 1) {
@@ -73,7 +100,7 @@ export function MapScreen() {
       }
     }, SEARCH_CAMERA_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [trimmedQuery, visibleDeals, flyTo, fitTo]);
+  }, [isFiltering, visibleDeals, flyTo, fitTo]);
 
   const markers = useMemo<MapMarker[]>(
     () =>
@@ -120,6 +147,16 @@ export function MapScreen() {
   const handleMapPress = useCallback(async () => {
     Keyboard.dismiss();
     setSelectedDealId(null);
+  }, []);
+
+  const handleCategorySelect = useCallback((next: CategoryFilter) => {
+    Keyboard.dismiss();
+    setCategory(next);
+  }, []);
+
+  const handleFiltersOpen = useCallback(() => {
+    Keyboard.dismiss();
+    setFiltersVisible(true);
   }, []);
 
   const handleOpenUrl = useCallback(async (url: string) => {
@@ -169,15 +206,25 @@ export function MapScreen() {
             onChangeText={setQuery}
             placeholder="Szukaj okazji w okolicy (np. kawa)"
             accessibilityLabel="Szukaj okazji"
+            onFilterPress={handleFiltersOpen}
             elevated
+          />
+
+          <FilterChips
+            options={categoryOptions}
+            selected={category}
+            onSelect={handleCategorySelect}
+            elevated
+            style={styles.chips}
+            contentContainerStyle={styles.chipsContent}
           />
 
           <View style={styles.overlayRow}>
             <View style={styles.notices}>
-              {trimmedQuery && visibleDeals.length === 0 ? (
+              {isFiltering && visibleDeals.length === 0 ? (
                 <View style={styles.notice}>
                   <Text style={styles.noticeText}>
-                    Brak okazji pasujących do „{trimmedQuery}”.
+                    {emptyResultsMessage(trimmedQuery, category)}
                   </Text>
                 </View>
               ) : null}
@@ -215,6 +262,15 @@ export function MapScreen() {
           </View>
         ) : null}
       </View>
+
+      <FilterSheet
+        visible={filtersVisible}
+        onClose={() => setFiltersVisible(false)}
+        title="Kategorie"
+        options={CATEGORY_FILTER_OPTIONS}
+        selected={category}
+        onSelect={handleCategorySelect}
+      />
     </View>
   );
 }
@@ -245,6 +301,14 @@ const styles = StyleSheet.create({
     right: spacing.lg,
     gap: spacing.sm,
     pointerEvents: "box-none",
+  },
+  // Chips scroll edge to edge, past the overlay's side padding.
+  chips: {
+    flexGrow: 0,
+    marginHorizontal: -spacing.lg,
+  },
+  chipsContent: {
+    paddingHorizontal: spacing.lg,
   },
   overlayRow: {
     flexDirection: "row",

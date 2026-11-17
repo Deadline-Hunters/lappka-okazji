@@ -151,6 +151,12 @@ export function CouponsScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Szukaj kuponów (np. kawa, kino, KFC)"
+          onFilterPress={() => {
+            Alert.alert(
+              "Filtry",
+              "Filtrowanie zaawansowane (kategorie, uczelnie) w przygotowaniu.",
+            );
+          }}
         />
 
         <FilterChips
