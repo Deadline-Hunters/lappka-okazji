@@ -29,7 +29,11 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Mapa", tabBarIcon: tabIcon("map-outline") }}
+        options={{
+          title: "Mapa",
+          headerShown: false,
+          tabBarIcon: tabIcon("map-outline"),
+        }}
       />
       <Tabs.Screen
         name="deals"

@@ -21,6 +21,7 @@ import { DealPreviewCard } from "./DealPreviewCard";
 import DealsMap from "./DealsMap";
 import type { CameraTarget, MapMarker, Vote } from "./types";
 import { useUserLocation } from "./useUserLocation";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const USER_ZOOM = 16;
 // Wait until the user stops typing before moving the camera to the search results.
@@ -185,6 +186,8 @@ export function MapScreen() {
     });
   }, []);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       <View style={styles.mapArea}>
@@ -200,7 +203,7 @@ export function MapScreen() {
           dom={{ style: styles.map, scrollEnabled: false }}
         />
 
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { paddingTop: insets.top }]}>
           <SearchBar
             value={query}
             onChangeText={setQuery}
@@ -262,7 +265,6 @@ export function MapScreen() {
           </View>
         ) : null}
       </View>
-
       <FilterSheet
         visible={filtersVisible}
         onClose={() => setFiltersVisible(false)}

@@ -34,6 +34,8 @@ export function FilterSheet<T extends string>({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      statusBarTranslucent
+      navigationBarTranslucent
     >
       <View style={styles.root}>
         <Pressable
