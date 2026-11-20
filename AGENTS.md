@@ -222,3 +222,65 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   there is a screen, and `_layout.tsx` files define navigators.
 - Import `Link`, `router` and `useLocalSearchParams` from `expo-router`.
 - Docs: <https://docs.expo.dev/router/introduction.md>
+
+## Documentation maintenance
+
+Agents are strictly required to keep the root `README.md` in sync with the
+repository state:
+
+1. **Mandatory README updates on impact:** Agents must update `README.md`
+   whenever introducing a change that impacts project documentation.
+2. **Same-task scope:** Any update to `README.md` must be completed within the
+   exact same task/PR as the accompanying application changes.
+3. **Specific triggers for documentation updates:**
+   - Adding new features, views, or capabilities.
+   - Modifying, deprecating, or removing existing features.
+   - Changes to architecture, modules, or directory structure.
+   - Adding, updating, or removing dependencies.
+   - Changes to environment configuration (`.env`, environment variables).
+   - Changes to installation, setup, services (e.g. Supabase, Docker), or run
+     scripts.
+   - Changes to underlying technologies, libraries, or external integrations.
+4. **Reflect factual implementation:** `README.md` must always reflect the
+   factual, implemented reality of the repository, never aspirational plans or
+   design goals alone.
+5. **No mock/placeholder misrepresentation:** Never mark or describe a feature
+   as implemented if it is currently only a mockup, placeholder, prototype, or
+   documented idea. Always clearly distinguish between fully implemented,
+   partial/mocked, and planned features.
+6. **No unnecessary modifications:** If a change does not affect the content or
+   accuracy of `README.md`, do not modify the file unnecessarily.
+7. **Pre-completion verification:** Before marking any task as complete, verify
+   that `README.md` remains accurate, up-to-date, and that no relevant changes
+   were omitted.
+
+## Documentation maintenance
+
+Agents are strictly required to keep the root `README.md` in sync with the
+repository state:
+
+1. **Mandatory README updates on impact:** Agents must update `README.md`
+   whenever introducing a change that impacts project documentation.
+2. **Same-task scope:** Any update to `README.md` must be completed within the
+   exact same task/PR as the accompanying application changes.
+3. **Specific triggers for documentation updates:**
+   - Adding new features, views, or capabilities.
+   - Modifying, deprecating, or removing existing features.
+   - Changes to architecture, modules, or directory structure.
+   - Adding, updating, or removing dependencies.
+   - Changes to environment configuration (`.env`, environment variables).
+   - Changes to installation, setup, services (e.g. Supabase, Docker), or run
+     scripts.
+   - Changes to underlying technologies, libraries, or external integrations.
+4. **Reflect factual implementation:** `README.md` must always reflect the
+   factual, implemented reality of the repository, never aspirational plans or
+   design goals alone.
+5. **No mock/placeholder misrepresentation:** Never mark or describe a feature
+   as implemented if it is currently only a mockup, placeholder, prototype, or
+   documented idea. Always clearly distinguish between fully implemented,
+   partial/mocked, and planned features.
+6. **No unnecessary modifications:** If a change does not affect the content or
+   accuracy of `README.md`, do not modify the file unnecessarily.
+7. **Pre-completion verification:** Before marking any task as complete, verify
+   that `README.md` remains accurate, up-to-date, and that no relevant changes
+   were omitted.
