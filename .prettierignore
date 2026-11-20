@@ -10,5 +10,8 @@ apps/mobile/ios/
 supabase/.branches/
 supabase/.temp/
 
+# Prettier has no SQL parser.
+supabase/**/*.sql
+
 *.min.js
 *.map
