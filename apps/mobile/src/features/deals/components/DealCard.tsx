@@ -6,7 +6,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { IconButton } from "@/components/IconButton";
 import { PriceTag } from "@/components/PriceTag";
-import { CATEGORIES, type Deal } from "@/features/deals/types";
+import { CATEGORIES, type Deal, type DealVote } from "@/features/deals/types";
 import { formatHunters, formatTimeAgo } from "@/lib/format";
 import { distanceInMeters, formatDistance, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
@@ -14,6 +14,7 @@ import { colors, radius, spacing } from "@/theme";
 type Props = {
   deal: Deal;
   userLocation: LatLng | null;
+  userVote?: DealVote | null;
   isBookmarked?: boolean;
   onBookmarkToggle?: (dealId: string) => void;
   onPress: (deal: Deal) => void;
@@ -22,11 +23,13 @@ type Props = {
 export function DealCard({
   deal,
   userLocation,
+  userVote = null,
   isBookmarked = false,
   onBookmarkToggle,
   onPress,
 }: Props) {
   const category = CATEGORIES[deal.category] ?? CATEGORIES.inne;
+  const confirmations = deal.confirmations + (userVote === "up" ? 1 : 0);
   const distance = userLocation
     ? formatDistance(distanceInMeters(userLocation, deal.location))
     : null;
@@ -90,7 +93,7 @@ export function DealCard({
               color={colors.primary}
             />
             <Text style={styles.confirmationsText}>
-              Potwierdzone przez {formatHunters(deal.confirmations)}
+              Potwierdzone przez {formatHunters(confirmations)}
             </Text>
           </View>
 
