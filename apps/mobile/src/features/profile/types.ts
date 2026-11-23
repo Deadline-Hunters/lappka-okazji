@@ -56,4 +56,3 @@ export interface ProfileDto {
 /**
  * Profile screen tab keys.
  */
-export type ProfileTab = "submissions" | "radar";

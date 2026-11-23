@@ -7,6 +7,7 @@ import type { Session } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
+import { PreferencesProvider } from "@/features/preferences/PreferencesProvider";
 
 // Expo SDK 58 bug (expo/build/dom/webview-wrapper.js): on a DOM component's first render it sends
 // props to the WebView before the native view exists and doesn't catch the rejected promise.
@@ -14,6 +15,14 @@ import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
 LogBox.ignoreLogs(["DomWebView.injectJavaScript"]);
 
 export default function RootLayout() {
+  return (
+    <PreferencesProvider>
+      <RootNavigator />
+    </PreferencesProvider>
+  );
+}
+
+function RootNavigator() {
   const [session, setSession] = useState<Session | null>(null);
   const [isDevelopmentFlow, setIsDevelopmentFlow] = useState(false);
   const [isGuest, setIsGuest] = useState(false);

@@ -109,8 +109,9 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 
 ## App shell
 
-- `src/app/(tabs)/_layout.tsx` defines **4 tabs**: `index` = Mapa, `deals` =
-  Okazje, `coupons` = Kupony, `profile` = Profil.
+- `src/app/(tabs)/_layout.tsx` defines **5 tabs**: `index` = Mapa, `deals` =
+  Okazje, `coupons` = Kupony, `profile` = Profil, `preferences` = Preferencje
+  (favorite categories; KAN-34).
 - Every tab gets the same `AppHeader` (app name + tab title) from the layout's
   `header` option, which also handles the top safe-area inset. Screens don't
   draw their own top bar or add a top inset.
