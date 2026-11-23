@@ -1,11 +1,12 @@
 import { Redirect, Stack, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogBox } from "react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
-import { AuthSessionContext } from "@/lib/auth-session";
+import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
 
 // Expo SDK 58 bug (expo/build/dom/webview-wrapper.js): on a DOM component's first render it sends
 // props to the WebView before the native view exists and doesn't catch the rejected promise.
@@ -15,21 +16,38 @@ LogBox.ignoreLogs(["DomWebView.injectJavaScript"]);
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
   const [isDevelopmentFlow, setIsDevelopmentFlow] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const setGuest = useCallback((value: boolean) => {
+    setIsGuest(value);
+    const write = value
+      ? AsyncStorage.setItem(GUEST_STORAGE_KEY, "1")
+      : AsyncStorage.removeItem(GUEST_STORAGE_KEY);
+    write.catch((error: unknown) =>
+      console.error("Unable to persist guest mode", error),
+    );
+  }, []);
+  const continueAsGuest = useCallback(() => setGuest(true), [setGuest]);
+  const exitGuestMode = useCallback(() => setGuest(false), [setGuest]);
   const segments = useSegments();
 
   useEffect(() => {
     let isMounted = true;
 
-    supabase.auth
-      .getSession()
-      .then(({ data, error }) => {
+    // Hydrate the guest flag together with the session so the auth screen never flashes.
+    Promise.all([
+      supabase.auth.getSession(),
+      AsyncStorage.getItem(GUEST_STORAGE_KEY).catch(() => null),
+    ])
+      .then(([{ data, error }, guestFlag]) => {
         if (error) {
           throw error;
         }
 
         if (isMounted) {
           setSession(data.session);
+          setIsGuest(guestFlag === "1" && !data.session);
           setIsLoading(false);
         }
       })
@@ -45,6 +63,11 @@ export default function RootLayout() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (isMounted) {
         setSession(session);
+        if (session) {
+          // A real sign-in replaces guest mode.
+          setIsGuest(false);
+          AsyncStorage.removeItem(GUEST_STORAGE_KEY).catch(() => undefined);
+        }
       }
     });
 
@@ -61,7 +84,7 @@ export default function RootLayout() {
   }
 
   // TODO(auth): Remove this development-only bypass once the user auth flow is implemented.
-  if (!session && !isDevelopmentFlow && !isAuthRoute) {
+  if (!session && !isGuest && !isDevelopmentFlow && !isAuthRoute) {
     return <Redirect href="/auth" />;
   }
 
@@ -75,6 +98,9 @@ export default function RootLayout() {
           }
         },
         isDevelopmentFlow,
+        isGuest,
+        continueAsGuest,
+        exitGuestMode,
       }}
     >
       <StatusBar style="dark" />

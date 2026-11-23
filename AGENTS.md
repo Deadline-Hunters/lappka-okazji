@@ -205,6 +205,10 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
 - **Expo Go can't connect:** turn off your VPN or try `npx expo start --tunnel`.
 - **Dev login shortcut:** the auth screen has a DEV SKIP button that goes
   straight to the tabs, so Supabase isn't needed for UI work.
+- **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an
+  account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
+  account (voting, bookmarking, adding deals) with `useRequireAccount()` from
+  `@/lib/auth-session`.
 
 ## Navigation & routing
 
