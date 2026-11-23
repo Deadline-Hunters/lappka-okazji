@@ -18,7 +18,7 @@ import { colors, spacing } from "@/theme";
 
 import { CouponCard } from "./components/CouponCard";
 import { CouponQrModal } from "./components/CouponQrModal";
-import { fetchCoupons } from "./mockCoupons";
+import { fetchCoupons } from "./services/couponService";
 import {
   COUPON_FILTERS,
   isEndingSoon,
@@ -36,6 +36,7 @@ type ToastState = {
 export function CouponsScreen() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<CouponFilter>("all");
@@ -47,8 +48,13 @@ export function CouponsScreen() {
   const backgroundedAt = useRef<number | null>(null);
 
   const loadCoupons = useCallback(async () => {
-    const nextCoupons = await fetchCoupons();
-    setCoupons(nextCoupons);
+    try {
+      const nextCoupons = await fetchCoupons();
+      setCoupons(nextCoupons);
+      setError(false);
+    } catch {
+      setError(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -179,7 +185,15 @@ export function CouponsScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? undefined : (
+          isLoading ? undefined : error ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              tone="danger"
+              title="Nie udało się pobrać kuponów"
+              message="Sprawdź połączenie z internetem i spróbuj ponownie."
+              action={{ label: "Spróbuj ponownie", onPress: loadCoupons }}
+            />
+          ) : (
             <EmptyState
               icon="ticket-outline"
               title="Brak kuponów"
