@@ -1,0 +1,54 @@
+name: DB types
+
+# Only run when the database definition (or the checker itself) changes.
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - "apps/mobile/src/lib/database.types.ts"
+      - ".github/workflows/db-types.yml"
+  push:
+    branches:
+      - develop
+      - test
+      - main
+    paths:
+      - "supabase/**"
+      - "apps/mobile/src/lib/database.types.ts"
+      - ".github/workflows/db-types.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-types-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check generated DB types
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Supabase
+        run: npx supabase start
+
+      - name: Check generated types
+        run: npm run db:types:check
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop --no-backup

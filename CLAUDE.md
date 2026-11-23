@@ -1,1 +1,1 @@
-@apps/mobile/AGENTS.md
+@./AGENTS.md

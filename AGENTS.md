@@ -18,8 +18,8 @@ project **KAN**, and the UI is designed in Figma.
   with typed routes, TypeScript `strict`, `@/*` → `apps/mobile/src/*`.
 - Backend: **Supabase, run locally** (Docker + Supabase CLI,
   `supabase/config.toml`). Data, auth users and storage don't sync between
-  developers, so migrations and `seed.sql` must be committed. There are no
-  tables yet, so every screen runs on mock data (`features/<feature>/mock*.ts`).
+  developers, so migrations and `seed.sql` must be committed. The schema lives
+  in `supabase/migrations`.
 - The client is in `src/lib/supabase.ts`. It reads `EXPO_PUBLIC_SUPABASE_URL`
   and `EXPO_PUBLIC_SUPABASE_ANON_KEY` from `apps/mobile/.env`, which is
   gitignored. Never commit or print its values.
@@ -44,10 +44,19 @@ npm run format              # Prettier --write
 npm run format:check        # Prettier --check (CI)
 npm run typecheck           # tsc --noEmit for apps/mobile (CI)
 npm run supabase:start      # local Supabase (needs Docker)
+npm run db:types            # regenerate database.types.ts from local Supabase
+npm run db:types:check      # verify the committed types are current (CI)
 cd apps/mobile && npx expo install <pkg>    # add deps, never a bare `npm i`
 cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 ```
 
+- `apps/mobile/src/lib/database.types.ts` is generated, so never edit it by
+  hand. After changing a migration, run `npm run supabase:start` then
+  `npm run db:types`, and commit the regenerated file.
+- `npm run db:types:check` regenerates the types in memory and exits non-zero if
+  the committed file is stale; it never writes to the file. CI runs it in
+  `.github/workflows/db-types.yml`, but only when the database or the types file
+  changes.
 - There is no lint or test step. CI (`.github/workflows/ci.yml`) runs `npm ci`,
   then `format:check`, then `typecheck` on every PR and on pushes to `develop`,
   `test` and `main`.
