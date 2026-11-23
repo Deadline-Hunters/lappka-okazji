@@ -1,8 +1,10 @@
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Button } from "@/components/Button";
+import { useAuthSession } from "@/lib/auth-session";
 import { SegmentedControl } from "@/components/SegmentedControl";
 
 import { authStyles } from "./authStyles";
@@ -14,7 +16,12 @@ import { SocialAuthButtons } from "./components/SocialAuthButtons";
 import { AUTH_MODES, type AuthMode } from "./types";
 
 export function AuthScreen() {
-  const [mode, setMode] = useState<AuthMode>("login");
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const [mode, setMode] = useState<AuthMode>(
+    params.mode === "register" ? "register" : "login",
+  );
+  const { continueAsGuest } = useAuthSession();
+  const router = useRouter();
 
   return (
     <>
@@ -40,6 +47,15 @@ export function AuthScreen() {
             />
             <AuthForm mode={mode} />
             <SocialAuthButtons />
+            <Button
+              label="Kontynuuj jako gość"
+              variant="tonal"
+              onPress={() => {
+                continueAsGuest();
+                router.replace("/(tabs)");
+              }}
+              style={authStyles.guestButton}
+            />
             <AuthTerms />
           </ScrollView>
         </KeyboardAvoidingView>

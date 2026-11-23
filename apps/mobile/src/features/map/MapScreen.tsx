@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Linking, StyleSheet, Text, View } from "react-native";
 
+import { useRequireAccount } from "@/lib/auth-session";
 import { FilterChips } from "@/components/FilterChips";
 import { FilterSheet } from "@/components/FilterSheet";
 import { IconButton } from "@/components/IconButton";
@@ -68,6 +69,7 @@ export function MapScreen() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [votes, setVotes] = useState<Record<string, Vote>>({});
+  const requireAccount = useRequireAccount();
   const hasCenteredOnUser = useRef(false);
 
   const deals = MOCK_DEALS;
@@ -174,17 +176,23 @@ export function MapScreen() {
   }, [refresh, location, flyTo]);
 
   // One vote per deal: tapping the same button again takes the vote back.
-  const handleVote = useCallback((dealId: string, vote: Vote) => {
-    setVotes((previous) => {
-      const next = { ...previous };
-      if (previous[dealId] === vote) {
-        delete next[dealId];
-      } else {
-        next[dealId] = vote;
+  const handleVote = useCallback(
+    (dealId: string, vote: Vote) => {
+      if (!requireAccount()) {
+        return;
       }
-      return next;
-    });
-  }, []);
+      setVotes((previous) => {
+        const next = { ...previous };
+        if (previous[dealId] === vote) {
+          delete next[dealId];
+        } else {
+          next[dealId] = vote;
+        }
+        return next;
+      });
+    },
+    [requireAccount],
+  );
 
   const insets = useSafeAreaInsets();
 

@@ -80,6 +80,7 @@ export const authStyles = StyleSheet.create({
   },
   socialRow: { flexDirection: "row", gap: spacing.sm },
   socialButton: { flex: 1 },
+  guestButton: { marginTop: spacing.md },
   terms: {
     marginTop: spacing.lg,
     paddingHorizontal: spacing.md,

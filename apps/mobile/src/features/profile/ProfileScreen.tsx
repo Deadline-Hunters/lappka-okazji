@@ -1,12 +1,15 @@
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
 import {
   SegmentedControl,
   type SegmentOption,
 } from "@/components/SegmentedControl";
+import { useAuthSession } from "@/lib/auth-session";
 import { colors, spacing } from "@/theme";
 
 import { LogoutButton } from "./components/LogoutButton";
@@ -16,7 +19,7 @@ import { UserProfileCard } from "./components/UserProfileCard";
 import { useProfile } from "./hooks/useProfile";
 import type { ProfileTab } from "./types";
 
-export function ProfileScreen() {
+function UserProfile() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("submissions");
   const { profile, isLoading, error, refetch } = useProfile();
   const submissionsCount = profile?.stats.submissionsCount;
@@ -94,6 +97,40 @@ export function ProfileScreen() {
 
       {/* Sign out button */}
       <LogoutButton />
+    </ScrollView>
+  );
+}
+
+export function ProfileScreen() {
+  const { isGuest, exitGuestMode } = useAuthSession();
+  const router = useRouter();
+
+  if (!isGuest) {
+    return <UserProfile />;
+  }
+
+  const openAuth = (mode: "login" | "register") => {
+    exitGuestMode();
+    router.replace({ pathname: "/auth", params: { mode } });
+  };
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <EmptyState
+        card
+        icon="person-outline"
+        title="Przeglądasz jako gość"
+        message="Konto jest potrzebne, aby dodawać i potwierdzać okazje oraz zbierać Łappsy."
+      />
+      <Button label="Zaloguj się" onPress={() => openAuth("login")} />
+      <Button
+        label="Załóż konto"
+        variant="secondary"
+        onPress={() => openAuth("register")}
+      />
     </ScrollView>
   );
 }

@@ -13,8 +13,10 @@ import { DealsLocationBanner } from "./components/DealsLocationBanner";
 import { MOCK_DEALS } from "./mockDeals";
 import { matchesDealSearch } from "./search";
 import { DEAL_SORT_OPTIONS, type Deal, type DealSortOption } from "./types";
+import { useRequireAccount } from "@/lib/auth-session";
 
 export function DealsScreen() {
+  const requireAccount = useRequireAccount();
   const { location, refresh } = useUserLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<DealSortOption>("closest");
@@ -73,6 +75,9 @@ export function DealsScreen() {
   };
 
   const handleBookmarkToggle = (dealId: string) => {
+    if (!requireAccount()) {
+      return;
+    }
     setBookmarkedDealIds((prev) => {
       const next = new Set(prev);
       if (next.has(dealId)) {
