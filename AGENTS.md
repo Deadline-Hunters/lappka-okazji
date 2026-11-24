@@ -109,8 +109,9 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 
 ## App shell
 
-- `src/app/(tabs)/_layout.tsx` defines **4 tabs**: `index` = Mapa, `deals` =
-  Okazje, `coupons` = Kupony, `profile` = Profil.
+- `src/app/(tabs)/_layout.tsx` defines **5 tabs**: `index` = Mapa, `deals` =
+  Okazje, `coupons` = Kupony, `profile` = Profil, `preferences` = Preferencje
+  (favorite categories; KAN-34).
 - Every tab gets the same `AppHeader` (app name + tab title) from the layout's
   `header` option, which also handles the top safe-area inset. Screens don't
   draw their own top bar or add a top inset.
@@ -152,9 +153,13 @@ Helpers:
   `formatDistance`.
 - `features/deals/search.ts`: `matchesDealSearch`, used by the deals list and
   the map.
-- `features/deals/categories.ts`: `CategoryFilter`, `CATEGORY_FILTER_OPTIONS`
-  (all, for the sheet), `quickCategoryOptions` ("Wszystkie" + the 4 categories
-  with the most deals, plus the selected one) and `matchesCategory`.
+- `features/deals/categories.ts`: `CategoryFilter` (`"all"`, `"favorites"` or a
+  category), `categoryFilterOptions` (all, for the sheet),
+  `quickCategoryOptions` ("Wszystkie", "Ulubione" + the 4 categories with the
+  most deals, plus the selected one) and `matchesCategory`.
+- `features/deals/useCategoryFilter.ts`: category filter state (used by Mapa).
+  It defaults to "Ulubione" when favorite categories are set in Preferencje
+  (`usePreferences()` from `features/preferences/PreferencesProvider`).
 
 **Filter pattern:** chips under the search bar show the most common options, and
 the search bar's "Filtry" button opens a `FilterSheet` with all of them. A pick

@@ -22,6 +22,8 @@ type ChipProps = {
   emoji?: string;
   // White chip with a shadow - for chips floating over the map.
   elevated?: boolean;
+  // "checkbox" for multi-select groups (e.g. favorite categories); "radio" otherwise.
+  selectionRole?: "radio" | "checkbox";
   style?: StyleProp<ViewStyle>;
 };
 
@@ -33,6 +35,7 @@ export function Chip({
   icon,
   emoji,
   elevated = false,
+  selectionRole = "radio",
   style,
 }: ChipProps) {
   const foreground = selected ? colors.textInverse : colors.inactiveFilterText;
@@ -51,7 +54,7 @@ export function Chip({
         pressed ? styles.pressed : null,
         style,
       ]}
-      accessibilityRole="radio"
+      accessibilityRole={selectionRole}
       accessibilityState={{ checked: selected }}
       accessibilityLabel={label}
     >

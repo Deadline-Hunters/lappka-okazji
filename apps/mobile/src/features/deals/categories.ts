@@ -2,7 +2,8 @@ import type { ChipOption } from "@/components/FilterChips";
 
 import { CATEGORIES, type Deal, type DealCategory } from "./types";
 
-export type CategoryFilter = "all" | DealCategory;
+// "favorites" = the categories picked in Preferencje (KAN-34).
+export type CategoryFilter = "all" | "favorites" | DealCategory;
 
 // How many categories get a chip under the search bar; the rest are in the filter sheet.
 const QUICK_CATEGORY_COUNT = 4;
@@ -15,21 +16,34 @@ const ALL_OPTION: ChipOption<CategoryFilter> = {
   label: "Wszystkie",
 };
 
+const FAVORITES_OPTION: ChipOption<CategoryFilter> = {
+  id: "favorites",
+  label: "Ulubione",
+  icon: "heart",
+};
+
 function categoryOption(id: DealCategory): ChipOption<CategoryFilter> {
   return { id, label: CATEGORIES[id].label, emoji: CATEGORIES[id].emoji };
 }
 
-// "Wszystkie" plus every category, for the filter sheet.
-export const CATEGORY_FILTER_OPTIONS: ChipOption<CategoryFilter>[] = [
-  ALL_OPTION,
-  ...CATEGORY_IDS.map(categoryOption),
-];
+// Leading options: "Wszystkie", plus "Ulubione" once the user has favorites.
+function baseOptions(hasFavorites: boolean): ChipOption<CategoryFilter>[] {
+  return hasFavorites ? [ALL_OPTION, FAVORITES_OPTION] : [ALL_OPTION];
+}
 
-// "Wszystkie" plus the categories with the most deals. A category picked in the
+// Every option, for the filter sheet.
+export function categoryFilterOptions(
+  hasFavorites: boolean,
+): ChipOption<CategoryFilter>[] {
+  return [...baseOptions(hasFavorites), ...CATEGORY_IDS.map(categoryOption)];
+}
+
+// Leading options plus the categories with the most deals. A category picked in the
 // filter sheet gets a chip too, so the active filter is always visible.
 export function quickCategoryOptions(
   deals: readonly Deal[],
   selected: CategoryFilter,
+  hasFavorites: boolean,
 ): ChipOption<CategoryFilter>[] {
   const counts = new Map<DealCategory, number>();
   for (const deal of deals) {
@@ -41,13 +55,30 @@ export function quickCategoryOptions(
     .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
     .slice(0, QUICK_CATEGORY_COUNT);
 
-  if (selected !== "all" && !common.includes(selected)) {
+  if (
+    selected !== "all" &&
+    selected !== "favorites" &&
+    !common.includes(selected)
+  ) {
     common.unshift(selected);
   }
 
-  return [ALL_OPTION, ...common.map(categoryOption)];
+  return [...baseOptions(hasFavorites), ...common.map(categoryOption)];
 }
 
-export function matchesCategory(deal: Deal, filter: CategoryFilter) {
-  return filter === "all" || deal.category === filter;
+export function matchesCategory(
+  deal: Deal,
+  filter: CategoryFilter,
+  favorites: readonly DealCategory[] = [],
+) {
+  if (filter === "all") return true;
+  if (filter === "favorites") return favorites.includes(deal.category);
+  return deal.category === filter;
+}
+
+// " w kategorii „Jedzenie”" for empty-result messages; empty for "all".
+export function categoryFilterSuffix(filter: CategoryFilter) {
+  if (filter === "all") return "";
+  if (filter === "favorites") return " w ulubionych kategoriach";
+  return ` w kategorii „${CATEGORIES[filter].label}”`;
 }

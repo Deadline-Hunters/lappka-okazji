@@ -7,13 +7,15 @@ import { FilterSheet } from "@/components/FilterSheet";
 import { IconButton } from "@/components/IconButton";
 import { SearchBar } from "@/components/SearchBar";
 import {
-  CATEGORY_FILTER_OPTIONS,
+  categoryFilterOptions,
+  categoryFilterSuffix,
   matchesCategory,
   quickCategoryOptions,
   type CategoryFilter,
 } from "@/features/deals/categories";
 import { MOCK_DEALS } from "@/features/deals/mockDeals";
 import { matchesDealSearch } from "@/features/deals/search";
+import { useCategoryFilter } from "@/features/deals/useCategoryFilter";
 import { CATEGORIES, discountPercent, isFresh } from "@/features/deals/types";
 import { DEFAULT_CENTER, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
@@ -29,8 +31,7 @@ const USER_ZOOM = 16;
 const SEARCH_CAMERA_DELAY_MS = 500;
 
 function emptyResultsMessage(query: string, category: CategoryFilter) {
-  const inCategory =
-    category === "all" ? "" : ` w kategorii „${CATEGORIES[category].label}”`;
+  const inCategory = categoryFilterSuffix(category);
   return query
     ? `Brak okazji pasujących do „${query}”${inCategory}.`
     : `Brak okazji${inCategory}.`;
@@ -66,7 +67,8 @@ export function MapScreen() {
   const { location, status, refresh } = useUserLocation();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CategoryFilter>("all");
+  const { category, setCategory, isDefault, favorites, hasFavorites } =
+    useCategoryFilter();
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [votes, setVotes] = useState<Record<string, Vote>>({});
   const requireAccount = useRequireAccount();
@@ -77,23 +79,27 @@ export function MapScreen() {
     () =>
       deals.filter(
         (deal) =>
-          matchesCategory(deal, category) && matchesDealSearch(deal, query),
+          matchesCategory(deal, category, favorites) &&
+          matchesDealSearch(deal, query),
       ),
-    [deals, query, category],
+    [deals, query, category, favorites],
   );
   const categoryOptions = useMemo(
-    () => quickCategoryOptions(deals, category),
-    [deals, category],
+    () => quickCategoryOptions(deals, category, hasFavorites),
+    [deals, category, hasFavorites],
   );
   // A deal hidden by the search or the category filter also closes its card.
   const selectedDeal =
     visibleDeals.find((deal) => deal.id === selectedDealId) ?? null;
   const trimmedQuery = query.trim();
   const isFiltering = trimmedQuery !== "" || category !== "all";
+  // The default "Ulubione" filter doesn't move the camera; the map still starts on the user.
+  const shouldFitResults =
+    trimmedQuery !== "" || (category !== "all" && !isDefault);
 
   // Bring the results into view - they can be outside the visible part of the map.
   useEffect(() => {
-    if (!isFiltering || visibleDeals.length === 0) return;
+    if (!shouldFitResults || visibleDeals.length === 0) return;
 
     const timer = setTimeout(() => {
       if (visibleDeals.length === 1) {
@@ -103,7 +109,7 @@ export function MapScreen() {
       }
     }, SEARCH_CAMERA_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [isFiltering, visibleDeals, flyTo, fitTo]);
+  }, [shouldFitResults, visibleDeals, flyTo, fitTo]);
 
   const markers = useMemo<MapMarker[]>(
     () =>
@@ -152,10 +158,13 @@ export function MapScreen() {
     setSelectedDealId(null);
   }, []);
 
-  const handleCategorySelect = useCallback((next: CategoryFilter) => {
-    Keyboard.dismiss();
-    setCategory(next);
-  }, []);
+  const handleCategorySelect = useCallback(
+    (next: CategoryFilter) => {
+      Keyboard.dismiss();
+      setCategory(next);
+    },
+    [setCategory],
+  );
 
   const handleFiltersOpen = useCallback(() => {
     Keyboard.dismiss();
@@ -277,7 +286,7 @@ export function MapScreen() {
         visible={filtersVisible}
         onClose={() => setFiltersVisible(false)}
         title="Kategorie"
-        options={CATEGORY_FILTER_OPTIONS}
+        options={categoryFilterOptions(hasFavorites)}
         selected={category}
         onSelect={handleCategorySelect}
       />
