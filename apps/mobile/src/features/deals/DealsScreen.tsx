@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 
+import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { FilterChips } from "@/components/FilterChips";
 import { SearchBar } from "@/components/SearchBar";
@@ -146,6 +147,17 @@ export function DealsScreen() {
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       />
+
+      <View style={styles.fabContainer}>
+        <Button
+          variant="primary"
+          size="md"
+          icon="add"
+          label="Dodaj okazję"
+          onPress={() => router.push("/add-deal")}
+          style={styles.fabButton}
+        />
+      </View>
     </View>
   );
 }
@@ -173,5 +185,19 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     marginBottom: spacing.xs,
+  },
+  fabContainer: {
+    position: "absolute",
+    right: spacing.md,
+    bottom: spacing.md,
+    zIndex: 10,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  fabButton: {
+    borderRadius: 24,
   },
 });

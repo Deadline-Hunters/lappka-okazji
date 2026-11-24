@@ -120,6 +120,7 @@ function RootNavigator() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
           <Stack.Screen name="deals/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="add-deal" options={{ headerShown: false }} />
         </Stack>
       </DealsInteractionProvider>
     </AuthSessionContext.Provider>
