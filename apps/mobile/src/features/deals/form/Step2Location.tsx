@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -13,11 +14,12 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { EmptyState } from "@/components/EmptyState";
 import { TextField } from "@/components/TextField";
+import DealsMap from "@/features/map/DealsMap";
+import type { CameraTarget, MapMarker } from "@/features/map/types";
 import { useUserLocation } from "@/features/map/useUserLocation";
 import { DEFAULT_CENTER, formatDistance, type LatLng } from "@/lib/geo";
 import { colors, radius, spacing } from "@/theme";
 
-import LocationPickerMap from "./LocationPickerMap";
 import {
   getNearbyStores,
   type StoreLocation,
@@ -43,8 +45,18 @@ export function Step2Location({ data, errors, onChange }: Props) {
   const [stores, setStores] = useState<StoreLocation[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
   const [storeFetchError, setStoreFetchError] = useState<string | null>(null);
+  const [camera, setCamera] = useState<CameraTarget | null>(null);
 
   const selectedPoint = data.location ?? userLocation ?? DEFAULT_CENTER;
+
+  const moveCameraTo = useCallback((coords: LatLng) => {
+    setCamera({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      zoom: 16,
+      id: Date.now(),
+    });
+  }, []);
 
   // Load nearby stores around the selected location
   const loadStores = useCallback(async (centerPoint: LatLng) => {
@@ -84,6 +96,7 @@ export function Step2Location({ data, errors, onChange }: Props) {
         ? ""
         : data.storeName || "Wybrany punkt na mapie",
     });
+    moveCameraTo(newPoint);
     void loadStores(newPoint);
   };
 
@@ -92,12 +105,14 @@ export function Step2Location({ data, errors, onChange }: Props) {
     const store = stores.find((s) => s.id === storeId);
     if (!store) return;
 
+    const coords = { latitude: store.latitude, longitude: store.longitude };
     onChange({
-      location: { latitude: store.latitude, longitude: store.longitude },
+      location: coords,
       selectedStoreId: store.id,
       storeName: store.name,
       storeAddress: store.address ?? "",
     });
+    moveCameraTo(coords);
   };
 
   // Recenter on user's current GPS position
@@ -110,9 +125,27 @@ export function Step2Location({ data, errors, onChange }: Props) {
         storeName: "Moja aktualna lokalizacja",
         storeAddress: "",
       });
+      moveCameraTo(pos);
       void loadStores(pos);
     }
   };
+
+  // Map stores to standard MapMarker items for DealsMap
+  const storeMarkers = useMemo<MapMarker[]>(
+    () =>
+      stores.map((store) => ({
+        id: store.id,
+        latitude: store.latitude,
+        longitude: store.longitude,
+        emoji: "🏪",
+        color:
+          store.id === data.selectedStoreId
+            ? colors.primary
+            : colors.neutralDark,
+        label: store.name,
+      })),
+    [stores, data.selectedStoreId],
+  );
 
   return (
     <View style={styles.container}>
@@ -154,14 +187,24 @@ export function Step2Location({ data, errors, onChange }: Props) {
           miejsce:
         </Text>
         <View style={styles.mapContainer}>
-          <LocationPickerMap
+          <DealsMap
             initialCenter={selectedPoint}
-            selectedLocation={selectedPoint}
-            stores={stores}
-            selectedStoreId={data.selectedStoreId}
+            initialZoom={16}
+            markers={storeMarkers}
             userLocation={userLocation}
-            onLocationChange={handleLocationChange}
-            onStoreSelect={handleSelectStore}
+            selectedMarkerId={data.selectedStoreId}
+            camera={camera}
+            pickedLocation={selectedPoint}
+            onPickedLocationChange={handleLocationChange}
+            onMarkerPress={handleSelectStore}
+            onMapPress={async (coords) => {
+              if (coords) {
+                await handleLocationChange(coords);
+              }
+            }}
+            onOpenUrl={async (url) => {
+              void Linking.openURL(url);
+            }}
             dom={{ style: styles.mapElement, scrollEnabled: false }}
           />
         </View>
@@ -222,18 +265,17 @@ export function Step2Location({ data, errors, onChange }: Props) {
           />
         ) : stores.length === 0 ? (
           <EmptyState
-            icon="storefront-outline"
-            title="Brak sklepów w pobliżu"
-            message="Nie znaleziono zarejestrowanych sklepów w promieniu 5 km. Wskaż punkt na mapie i wpisz nazwę miejsca ręcznie."
+            title="Brak zapisanych sklepów"
+            message="W promieniu 5 km nie ma zarejestrowanych sklepów. Możesz wpisać własną nazwę powyżej."
           />
         ) : (
           <FlatList
             data={stores}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             renderItem={({ item }) => {
-              const isSelected = item.id === data.selectedStoreId;
-
+              const isSelected = data.selectedStoreId === item.id;
               return (
                 <Pressable
                   accessibilityRole="button"
@@ -244,6 +286,10 @@ export function Step2Location({ data, errors, onChange }: Props) {
                     isSelected && styles.storeItemSelected,
                   ]}
                 >
+                  <View style={styles.storeIconWrap}>
+                    <Text style={styles.storeIcon}>🏪</Text>
+                  </View>
+
                   <View style={styles.storeInfo}>
                     <Text
                       style={[
@@ -260,16 +306,14 @@ export function Step2Location({ data, errors, onChange }: Props) {
                     ) : null}
                   </View>
 
-                  {item.distanceMeters != null ? (
-                    <Badge
-                      tone={isSelected ? "primary" : "muted"}
-                      label={formatDistance(item.distanceMeters)}
-                    />
+                  {item.distanceMeters !== undefined ? (
+                    <Text style={styles.distanceBadge}>
+                      {formatDistance(item.distanceMeters)}
+                    </Text>
                   ) : null}
                 </Pressable>
               );
             }}
-            contentContainerStyle={styles.storesList}
           />
         )}
       </View>
@@ -279,7 +323,7 @@ export function Step2Location({ data, errors, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   gpsRow: {
     flexDirection: "row",
@@ -292,49 +336,49 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   gpsStatusLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textMuted,
-    fontWeight: "500",
   },
   warningNotice: {
+    backgroundColor: colors.surfaceContainerLow,
     padding: spacing.sm,
-    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.md,
     borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
+    borderLeftColor: colors.accent,
   },
   warningText: {
     fontSize: 12,
     color: colors.textMuted,
-    lineHeight: 17,
+    lineHeight: 16,
   },
   mapCard: {
     gap: spacing.xs,
   },
   mapHint: {
     fontSize: 12,
+    fontWeight: "600",
     color: colors.textMuted,
   },
   mapContainer: {
-    height: 240,
-    borderRadius: radius.md,
+    height: 220,
+    borderRadius: radius.lg,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
   },
   mapElement: {
-    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   selectedLocationCard: {
     padding: spacing.md,
     gap: spacing.xs,
-    backgroundColor: colors.surface,
   },
   selectedLabel: {
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 12,
     color: colors.textMuted,
-    textTransform: "uppercase",
+    fontWeight: "500",
   },
   selectedName: {
     fontSize: 16,
@@ -349,14 +393,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textMuted,
     fontFamily: "monospace",
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
   nameInput: {
     marginTop: spacing.sm,
   },
   storesSection: {
     gap: spacing.xs,
-    marginTop: spacing.sm,
   },
   sectionTitle: {
     fontSize: 15,
@@ -369,37 +412,44 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   loaderContainer: {
-    flexDirection: "row",
+    padding: spacing.lg,
     alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
+    gap: spacing.xs,
   },
   loaderText: {
     fontSize: 13,
     color: colors.textMuted,
   },
-  storesList: {
-    gap: spacing.xs,
+  separator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 4,
   },
   storeItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 48,
+    gap: spacing.sm,
   },
   storeItemSelected: {
     backgroundColor: colors.primarySoft,
-    borderColor: colors.primary,
+  },
+  storeIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceContainerLow,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  storeIcon: {
+    fontSize: 16,
   },
   storeInfo: {
     flex: 1,
-    marginRight: spacing.sm,
+    gap: 2,
   },
   storeItemName: {
     fontSize: 14,
@@ -413,10 +463,15 @@ const styles = StyleSheet.create({
   storeItemAddress: {
     fontSize: 12,
     color: colors.textMuted,
-    marginTop: 2,
+  },
+  distanceBadge: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textMuted,
   },
   errorText: {
     fontSize: 12,
     color: colors.danger,
+    marginTop: spacing.xs,
   },
 });

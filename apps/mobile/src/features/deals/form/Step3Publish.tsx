@@ -154,7 +154,8 @@ export function Step3Publish({
       {/* 2. Wskazówka dla łowców (opcjonalna) */}
       <View style={styles.section}>
         <TextField
-          label="Wskazówka dla innych (opcjonalnie)"
+          label="Wskazówka dla innych"
+          hint="opcjonalnie"
           placeholder="np. 'Promocja widoczna przy kasie, tylko z kartą Moja Biedronka' lub 'Stoisko z pieczywem na końcu sklepu'"
           value={data.description}
           onChangeText={(description) => onChange({ description })}
@@ -162,8 +163,10 @@ export function Step3Publish({
           multiline
           numberOfLines={3}
           maxLength={1000}
-          hint="Dodatkowe informacje ułatwiające znalezienie i skorzystanie z okazji."
         />
+        <Text style={styles.helperText}>
+          Dodatkowe informacje ułatwiające znalezienie i skorzystanie z okazji.
+        </Text>
       </View>
 
       {/* 3. Podsumowanie przed publikacją */}
@@ -482,5 +485,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.danger,
     marginTop: spacing.xs,
+  },
+  helperText: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+    lineHeight: 16,
   },
 });
