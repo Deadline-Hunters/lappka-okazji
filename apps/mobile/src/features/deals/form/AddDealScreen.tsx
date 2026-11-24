@@ -37,7 +37,7 @@ import {
 type Step = 1 | 2 | 3;
 
 export function AddDealScreen() {
-  const { session, isDevelopmentFlow } = useAuthSession();
+  const { session } = useAuthSession();
 
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [formData, setFormData] = useState<DealFormData>(INITIAL_FORM_DATA);
@@ -46,7 +46,6 @@ export function AddDealScreen() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const isAuthenticated = session != null;
-  const isDevBypass = !isAuthenticated && isDevelopmentFlow;
 
   // Check if user has entered any data (to confirm before abandoning form)
   const isDirty =
@@ -140,7 +139,7 @@ export function AddDealScreen() {
       return;
     }
 
-    if (!isAuthenticated && !isDevBypass) {
+    if (!isAuthenticated) {
       Alert.alert(
         "Wymagane logowanie",
         "Musisz być zalogowany, aby móc opublikować okazję.",
@@ -174,8 +173,8 @@ export function AddDealScreen() {
     }
   };
 
-  // If user is not authenticated and not in DEV bypass mode: gate access
-  if (!isAuthenticated && !isDevBypass) {
+  // If user is not authenticated
+  if (!isAuthenticated) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
@@ -211,15 +210,6 @@ export function AddDealScreen() {
         />
 
         <StepIndicator currentStep={currentStep} />
-
-        {isDevBypass && (
-          <View style={styles.devBanner}>
-            <Text style={styles.devBannerText}>
-              [DEV] Tryb podglądu (bez sesji). Zaloguj się w Supabase, aby
-              zapisać w bazie.
-            </Text>
-          </View>
-        )}
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
