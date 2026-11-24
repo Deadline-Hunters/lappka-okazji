@@ -147,7 +147,7 @@ export function AddDealScreen() {
       return;
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !session?.user?.id) {
       Alert.alert(
         "Wymagane logowanie",
         "Musisz być zalogowany, aby móc opublikować okazję.",
@@ -162,7 +162,7 @@ export function AddDealScreen() {
     try {
       setIsSubmitting(true);
 
-      const userId = session?.user?.id ?? "dev-user-id";
+      const userId = session.user.id;
       await submitDeal(formData, userId);
 
       setToastMessage("Okazja została pomyślnie opublikowana!");
@@ -309,18 +309,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: colors.primaryDark,
-  },
-  devBanner: {
-    backgroundColor: "#FFF3CD",
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFEEBA",
-  },
-  devBannerText: {
-    fontSize: 12,
-    color: "#856404",
-    textAlign: "center",
   },
   authGateContainer: {
     flex: 1,

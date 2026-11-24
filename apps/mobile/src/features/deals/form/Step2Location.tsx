@@ -90,11 +90,12 @@ export function Step2Location({ data, errors, onChange }: Props) {
   const handleLocationChange = async (newPoint: LatLng) => {
     onChange({
       location: newPoint,
-      // If manually picking point, clear store ID unless store matches
+      // If manually picking point, clear store ID but preserve or provide a clear location name
       selectedStoreId: null,
-      storeName: data.selectedStoreId
-        ? ""
-        : data.storeName || "Wybrany punkt na mapie",
+      storeName:
+        data.storeName.trim() !== ""
+          ? data.storeName
+          : "Wybrany punkt na mapie",
     });
     moveCameraTo(newPoint);
     void loadStores(newPoint);

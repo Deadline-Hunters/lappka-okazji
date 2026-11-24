@@ -231,13 +231,13 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
 - 3-step wizard:
   - Step 1: photo (`expo-image-picker`), title, category (`CATEGORIES`),
     optional price.
-  - Step 2: location on MapLibre DOM component (`LocationPickerMap.tsx`), GPS
-    detection, draggable pin, store selection list (`storeLocationsService.ts`
-    calling `locations_near` RPC).
+  - Step 2: location on MapLibre DOM component (`DealsMap.tsx`), GPS detection,
+    draggable pin, store selection list (`storeLocationsService.ts` calling
+    `locations_near` RPC).
   - Step 3: validity date, optional hint/description, complete summary card,
     publication button.
-- Local profanity moderation (`features/deals/validation/profanity.ts`): uses
-  `obscenity` with Polish roots, leetspeak and confusables resolution,
+- Local profanity moderation (`features/deals/validation/profanity.ts`):
+  standalone Polish profanity matcher with Polish roots, leetspeak resolution,
   diacritics normalization, and false-positive whitelisting (e.g. "sukienka",
   "kuchnia").
 - Supabase Storage: bucket `deal-images` stores user photos under

@@ -97,31 +97,31 @@ kamieniem milowym jest wdrożenie funkcjonalnego **MVP do dnia 30.11.2026**.
 Poniższa tabela przedstawia rzetelny stan prac w repozytorium na podstawie
 analizy kodu źródłowego:
 
-| Funkcjonalność                                | Status                      | Uwagi implementacyjne                                                                                                                                                    |
-| --------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Interaktywna mapa okazji**                  | ✅ Zaimplementowana         | MapLibre GL JS + OpenFreeMap w komponencie DOM (`"use dom"`), działa w Expo Go.                                                                                          |
-| **Geolokalizacja użytkownika**                | ✅ Zaimplementowana         | `expo-location`, automatyczne centrowanie kamery, fallback do centrum Krakowa.                                                                                           |
-| **Wyszukiwarka i filtry na mapie**            | ✅ Zaimplementowana         | Wyszukiwanie tekstowe bez polskich znaków diakrytycznych, horyzontalne chipy, modalny `FilterSheet`.                                                                     |
-| **Podgląd okazji na mapie**                   | ✅ Zaimplementowana         | `DealPreviewCard` z kalkulacją dystansu, ceną, rabatem i czasem dodania.                                                                                                 |
-| **Lista okazji (katalog)**                    | ✅ Zaimplementowana         | Przewijalna lista `DealCard`, baner lokalizacyjny, pull-to-refresh, empty state.                                                                                         |
-| **Sortowanie listy okazji**                   | ✅ Zaimplementowana         | Sortowanie po odległości GPS (`closest`), dacie (`newest`), rabacie (`biggest_discount`) i zapisanych (`bookmarked`).                                                    |
-| **Wyszukiwarka ofert na liście**              | ✅ Zaimplementowana         | Wyszukiwanie pełnotekstowe (wielowyrazowe) z normalizacją tekstu.                                                                                                        |
-| **Katalog kuponów rabatowych**                | ✅ Zaimplementowana         | Przeglądanie kuponów partnerskich, filtrowanie (Wszystkie, Kończące się, Kod, QR).                                                                                       |
-| **Kopiowanie kodu kuponu**                    | ✅ Zaimplementowana         | `expo-clipboard` z powiadomieniem `Toast`.                                                                                                                               |
-| **Wyświetlanie kodu QR kuponu**               | ✅ Zaimplementowana         | Generowanie kodu QR (`react-native-qrcode-svg`) w dedykowanym modalu `CouponQrModal`.                                                                                    |
-| **Profil użytkownika i statystyki**           | ✅ Zaimplementowana         | Karta profilowa, saldo punktów Łappsy, liczba zgłoszeń i potwierdzeń.                                                                                                    |
-| **Historia zgłoszeń użytkownika**             | ✅ Zaimplementowana         | Lista `MySubmissionsList` z odznakami statusu (`active`, `expired`).                                                                                                     |
-| **Biblioteka komponentów (Design System)**    | ✅ Zaimplementowana         | Spójny zestaw ponad 15 komponentów UI i tokenów motywu (`@/theme`).                                                                                                      |
-| **Głosowanie na okazje (Potwierdź / Nie ma)** | 🟡 Częściowa (Mock)         | Działa w UI, ale stan przechowywany jest wyłącznie w lokalnej pamięci komponentu (`useState`), brak synchronizacji z bazą.                                               |
-| **Zapisywanie okazji (Ulubione / Zapisane)**  | 🟡 Częściowa (Mock)         | Przełącznik zakładki działa w UI, zapis w pamięci `useState` bieżącej sesji aplikacji.                                                                                   |
-| **Autentykacja i autoryzacja (UI)**           | 🟡 Częściowa (Mock)         | Formularze logowania i rejestracji, przyciski społecznościowe (Google/Apple) i `[DEV] SKIP`. Wysłanie formularza loguje dane do konsoli, brak połączenia z bazą.         |
-| **Filtry zaawansowane (Okazje i Kupony)**     | 🟡 Częściowa (Placeholder)  | Przycisk „Filtry” w wyszukiwarce na tych ekranach wywołuje komunikat `Alert.alert` o pracach w toku.                                                                     |
-| **Szczegóły okazji / kuponu**                 | 🟡 Częściowa (Placeholder)  | Kliknięcie w kafelek wyświetla systemowy alert informacyjny zamiast dedykowanego ekranu.                                                                                 |
-| **Ustawienia radaru okazji**                  | 🟡 Częściowa (Placeholder)  | Zakładka w profilu prezentuje makietę planowanych opcji (`RadarSettingsPlaceholder`).                                                                                    |
-| **Trwały backend danych (Supabase)**          | 🟡 Częściowa (Przygotowany) | Schemat bazy, migracje SQL (tabele, RLS, Storage `deal-images`, RPC `submit_deal`, `locations_near`), obsługa lokalna w Docker.                                          |
-| **Formularz zgłaszania/dodawania okazji**     | ✅ Zaimplementowana         | 3-krokowy formularz (szczegóły, mapa i wybór sklepów, publikacja), integracja ze Storage `deal-images`, RPC `submit_deal`, walidacja wulgaryzmów biblioteką `obscenity`. |
-| **Powiadomienia push i geofencing**           | ❌ Niezaimplementowana      | Celowo brak powiadomień w obecnej wersji MVP (usunięto ikonę dzwonka).                                                                                                   |
-| **Program wymiany punktów Łappsy**            | ❌ Niezaimplementowana      | Zliczanie salda działa na makiecie, brak modułu nagród i wymiany punktów.                                                                                                |
+| Funkcjonalność                                | Status                      | Uwagi implementacyjne                                                                                                                                                      |
+| --------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Interaktywna mapa okazji**                  | ✅ Zaimplementowana         | MapLibre GL JS + OpenFreeMap w komponencie DOM (`"use dom"`), działa w Expo Go.                                                                                            |
+| **Geolokalizacja użytkownika**                | ✅ Zaimplementowana         | `expo-location`, automatyczne centrowanie kamery, fallback do centrum Krakowa.                                                                                             |
+| **Wyszukiwarka i filtry na mapie**            | ✅ Zaimplementowana         | Wyszukiwanie tekstowe bez polskich znaków diakrytycznych, horyzontalne chipy, modalny `FilterSheet`.                                                                       |
+| **Podgląd okazji na mapie**                   | ✅ Zaimplementowana         | `DealPreviewCard` z kalkulacją dystansu, ceną, rabatem i czasem dodania.                                                                                                   |
+| **Lista okazji (katalog)**                    | ✅ Zaimplementowana         | Przewijalna lista `DealCard`, baner lokalizacyjny, pull-to-refresh, empty state.                                                                                           |
+| **Sortowanie listy okazji**                   | ✅ Zaimplementowana         | Sortowanie po odległości GPS (`closest`), dacie (`newest`), rabacie (`biggest_discount`) i zapisanych (`bookmarked`).                                                      |
+| **Wyszukiwarka ofert na liście**              | ✅ Zaimplementowana         | Wyszukiwanie pełnotekstowe (wielowyrazowe) z normalizacją tekstu.                                                                                                          |
+| **Katalog kuponów rabatowych**                | ✅ Zaimplementowana         | Przeglądanie kuponów partnerskich, filtrowanie (Wszystkie, Kończące się, Kod, QR).                                                                                         |
+| **Kopiowanie kodu kuponu**                    | ✅ Zaimplementowana         | `expo-clipboard` z powiadomieniem `Toast`.                                                                                                                                 |
+| **Wyświetlanie kodu QR kuponu**               | ✅ Zaimplementowana         | Generowanie kodu QR (`react-native-qrcode-svg`) w dedykowanym modalu `CouponQrModal`.                                                                                      |
+| **Profil użytkownika i statystyki**           | ✅ Zaimplementowana         | Karta profilowa, saldo punktów Łappsy, liczba zgłoszeń i potwierdzeń.                                                                                                      |
+| **Historia zgłoszeń użytkownika**             | ✅ Zaimplementowana         | Lista `MySubmissionsList` z odznakami statusu (`active`, `expired`).                                                                                                       |
+| **Biblioteka komponentów (Design System)**    | ✅ Zaimplementowana         | Spójny zestaw ponad 15 komponentów UI i tokenów motywu (`@/theme`).                                                                                                        |
+| **Głosowanie na okazje (Potwierdź / Nie ma)** | 🟡 Częściowa (Mock)         | Działa w UI, ale stan przechowywany jest wyłącznie w lokalnej pamięci komponentu (`useState`), brak synchronizacji z bazą.                                                 |
+| **Zapisywanie okazji (Ulubione / Zapisane)**  | 🟡 Częściowa (Mock)         | Przełącznik zakładki działa w UI, zapis w pamięci `useState` bieżącej sesji aplikacji.                                                                                     |
+| **Autentykacja i autoryzacja (UI)**           | 🟡 Częściowa (Mock)         | Formularze logowania i rejestracji, przyciski społecznościowe (Google/Apple) i `[DEV] SKIP`. Wysłanie formularza loguje dane do konsoli, brak połączenia z bazą.           |
+| **Filtry zaawansowane (Okazje i Kupony)**     | 🟡 Częściowa (Placeholder)  | Przycisk „Filtry” w wyszukiwarce na tych ekranach wywołuje komunikat `Alert.alert` o pracach w toku.                                                                       |
+| **Szczegóły okazji / kuponu**                 | 🟡 Częściowa (Placeholder)  | Kliknięcie w kafelek wyświetla systemowy alert informacyjny zamiast dedykowanego ekranu.                                                                                   |
+| **Ustawienia radaru okazji**                  | 🟡 Częściowa (Placeholder)  | Zakładka w profilu prezentuje makietę planowanych opcji (`RadarSettingsPlaceholder`).                                                                                      |
+| **Trwały backend danych (Supabase)**          | 🟡 Częściowa (Przygotowany) | Schemat bazy, migracje SQL (tabele, RLS, Storage `deal-images`, RPC `submit_deal`, `locations_near`), obsługa lokalna w Docker.                                            |
+| **Formularz zgłaszania/dodawania okazji**     | ✅ Zaimplementowana         | 3-krokowy formularz (szczegóły, mapa i wybór sklepów, publikacja), integracja ze Storage `deal-images`, RPC `submit_deal`, lokalny filtr wulgaryzmów dla języka polskiego. |
+| **Powiadomienia push i geofencing**           | ❌ Niezaimplementowana      | Celowo brak powiadomień w obecnej wersji MVP (usunięto ikonę dzwonka).                                                                                                     |
+| **Program wymiany punktów Łappsy**            | ❌ Niezaimplementowana      | Zliczanie salda działa na makiecie, brak modułu nagród i wymiany punktów.                                                                                                  |
 
 ### 2.2. Opis poszczególnych modułów
 
@@ -168,7 +168,7 @@ zalogowanych użytkowników.
   urządzenia (`expo-image-picker`), podgląd miniatury z możliwością zmiany lub
   usunięcia, wprowadzenie tytułu (3–120 znaków), wybór kategorii oraz opcjonalna
   cena.
-- **Krok 2 (Lokalizacja):** Interaktywna mapa MapLibre (`LocationPickerMap`) z
+- **Krok 2 (Lokalizacja):** Interaktywna mapa MapLibre (`DealsMap`) z
   możliwością ręcznego przesunięcia pinezki lub dotknięcia punktu na mapie,
   pobieranie lokalizacji GPS (`expo-location`), oraz lista pobliskich sklepów
   wraz z odległością i adresem (funkcja RPC `locations_near` z fallbackiem do
@@ -177,9 +177,8 @@ zalogowanych użytkowników.
   opcjonalna wskazówka (do 1000 znaków), podsumowanie wprowadzonych danych oraz
   publikacja.
 - **Walidacja i moderacja:** Walidacja pól obowiązkowych, daty w przyszłości,
-  oraz lokalny statyczny filtr wulgaryzmów oparty na bibliotece `obscenity` ze
-  słownikiem odmian języka polskiego, obsługą leetspeak i ochroną przed false
-  positives.
+  oraz lokalny statyczny filtr wulgaryzmów dla języka polskiego ze słownikiem
+  odmian, obsługą leetspeak i ochroną przed false positives.
 - **Backend i Storage:** Bezpieczne przesyłanie zdjęć do Supabase Storage
   (bucket `deal-images`), wywołanie procedury `submit_deal` z kontrolą RLS oraz
   automatyczne czyszczenie osieroconych plików w przypadku błędu bazy.
@@ -251,8 +250,6 @@ W projekcie wykorzystywane są wyłącznie sprawdzone, nowoczesne technologie ze
   czasu użycia, współrzędne GPS).
 - **`expo-image-picker` (~58.0.10):** obsługa wyboru zdjęć z galerii oraz
   wykonywania zdjęć aparatem w formularzu okazji (kompatybilne z Expo Go).
-- **`obscenity` (^0.4.6):** deterministyczne, lokalne filtrowanie wulgaryzmów i
-  nieodpowiednich treści z obsługą leetspeak i odmian języka polskiego.
 - **`expo-clipboard` (~58.0.4):** dostęp do schowka systemowego (kopiowanie
   kodów rabatowych).
 - **`expo-secure-store` (^58.0.2):** bezpieczne szyfrowane przechowywanie danych

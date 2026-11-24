@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/components/Button";
@@ -23,6 +23,31 @@ const CATEGORY_KEYS = Object.keys(CATEGORIES) as DealCategory[];
 
 export function Step1Details({ data, errors, onChange }: Props) {
   const [isPickingImage, setIsPickingImage] = useState(false);
+  const [priceInput, setPriceInput] = useState<string>(() =>
+    data.price != null ? String(data.price) : "",
+  );
+
+  // Synchronize local input state if price was cleared externally
+  useEffect(() => {
+    if (data.price == null && priceInput !== "") {
+      setPriceInput("");
+    }
+  }, [data.price, priceInput]);
+
+  const handlePriceChange = (val: string) => {
+    // Keep only digits, dots and commas
+    const sanitized = val.replace(/[^0-9.,]/g, "");
+    setPriceInput(sanitized);
+
+    const clean = sanitized.replace(",", ".");
+    if (clean.trim() === "" || clean === ".") {
+      onChange({ price: undefined });
+      return;
+    }
+
+    const num = parseFloat(clean);
+    onChange({ price: isNaN(num) ? undefined : num });
+  };
 
   const handlePickFromGallery = async () => {
     try {
@@ -222,12 +247,8 @@ export function Step1Details({ data, errors, onChange }: Props) {
           hint="opcjonalnie"
           placeholder="np. 9.99 (0 = Gratis)"
           keyboardType="decimal-pad"
-          value={data.price != null ? String(data.price) : ""}
-          onChangeText={(val) => {
-            const clean = val.replace(",", ".");
-            const num = parseFloat(clean);
-            onChange({ price: isNaN(num) ? undefined : num });
-          }}
+          value={priceInput}
+          onChangeText={handlePriceChange}
           error={errors.price}
         />
         <Text style={styles.helperText}>
