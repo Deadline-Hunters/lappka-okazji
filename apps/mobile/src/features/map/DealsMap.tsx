@@ -194,16 +194,6 @@ export default function DealsMap({
     let cancelled = false;
     let created: maplibregl.Map | null = null;
 
-    // Links (e.g. attribution) open in the browser - navigating inside the WebView would replace the map.
-    function handleLinkClick(event: MouseEvent) {
-      const link = (event.target as Element | null)?.closest?.("a");
-      if (link && link.href.startsWith("http")) {
-        event.preventDefault();
-        void callbacks.current.onOpenUrl(link.href);
-      }
-    }
-    document.addEventListener("click", handleLinkClick, true);
-
     loadMapLibre()
       .then((maplibre) => {
         if (cancelled || !containerRef.current) {
@@ -267,7 +257,6 @@ export default function DealsMap({
 
     return () => {
       cancelled = true;
-      document.removeEventListener("click", handleLinkClick, true);
       created?.remove();
     };
     // The map is created once; the initial center and zoom only matter at startup.
