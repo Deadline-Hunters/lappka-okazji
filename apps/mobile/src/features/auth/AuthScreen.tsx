@@ -12,16 +12,75 @@ import { AuthForm } from "./components/AuthForm";
 import { AuthHeader } from "./components/AuthHeader";
 import { AuthHero } from "./components/AuthHero";
 import { AuthTerms } from "./components/AuthTerms";
+import { ConfirmEmailForm } from "./components/ConfirmEmailForm";
+import { ResetPasswordForm } from "./components/ResetPasswordForm";
 import { SocialAuthButtons } from "./components/SocialAuthButtons";
 import { AUTH_MODES, type AuthMode } from "./types";
 
+type AuthFlow = "auth" | "reset" | "confirm";
 export function AuthScreen() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<AuthMode>(
     params.mode === "register" ? "register" : "login",
   );
+  const [flow, setFlow] = useState<AuthFlow>("auth");
+  const [confirmationEmail, setConfirmationEmail] = useState("");
   const { continueAsGuest } = useAuthSession();
   const router = useRouter();
+
+  function renderSwitch(param: AuthFlow) {
+    switch (param) {
+      case "reset":
+        return <ResetPasswordForm onBack={() => setFlow("auth")} />;
+      case "confirm":
+        return (
+          <ConfirmEmailForm
+            initialEmail={confirmationEmail}
+            onBack={() => {
+              setMode("login");
+              setFlow("auth");
+            }}
+          />
+        );
+
+      case "auth":
+        return (
+          <>
+            <SegmentedControl
+              options={AUTH_MODES}
+              value={mode}
+              onChange={setMode}
+              tone="primary"
+              style={authStyles.modeSwitch}
+            />
+            <AuthForm
+              mode={mode}
+              onForgotPassword={() => setFlow("reset")}
+              onConfirmEmail={() => {
+                setConfirmationEmail("");
+                setFlow("confirm");
+              }}
+              onRegistered={(email) => {
+                setConfirmationEmail(email);
+                setFlow("confirm");
+              }}
+            />
+            <SocialAuthButtons />
+            <Button
+              label="Kontynuuj jako gość"
+              variant="tonal"
+              onPress={() => {
+                continueAsGuest();
+                router.replace("/(tabs)");
+              }}
+              style={authStyles.guestButton}
+            />
+          </>
+        );
+      default:
+        return "Bad form param";
+    }
+  }
 
   return (
     <>
@@ -34,28 +93,12 @@ export function AuthScreen() {
           <ScrollView
             contentContainerStyle={authStyles.content}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
           >
             <AuthHeader />
             <AuthHero />
-            <SegmentedControl
-              options={AUTH_MODES}
-              value={mode}
-              onChange={setMode}
-              tone="primary"
-              style={authStyles.modeSwitch}
-            />
-            <AuthForm mode={mode} />
-            <SocialAuthButtons />
-            <Button
-              label="Kontynuuj jako gość"
-              variant="tonal"
-              onPress={() => {
-                continueAsGuest();
-                router.replace("/(tabs)");
-              }}
-              style={authStyles.guestButton}
-            />
+            {renderSwitch(flow)}
             <AuthTerms />
           </ScrollView>
         </KeyboardAvoidingView>

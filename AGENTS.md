@@ -19,7 +19,8 @@ project **KAN**, and the UI is designed in Figma.
 - Backend: **Supabase, run locally** (Docker + Supabase CLI,
   `supabase/config.toml`). Data, auth users and storage don't sync between
   developers, so migrations and `seed.sql` must be committed. The schema lives
-  in `supabase/migrations`.
+  in `supabase/migrations`, and most screens still run on mock data
+  (`features/<feature>/mock*.ts`).
 - The client is in `src/lib/supabase.ts`. It reads `EXPO_PUBLIC_SUPABASE_URL`
   and `EXPO_PUBLIC_SUPABASE_ANON_KEY` from `apps/mobile/.env`, which is
   gitignored. Never commit or print its values.
@@ -215,6 +216,20 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
   account (voting, bookmarking, adding deals) with `useRequireAccount()` from
   `@/lib/auth-session`.
+- **Email authentication:** create `apps/mobile/.env` from `.env.example`, start
+  Supabase and use the local API URL and anon key from
+  `npm run supabase:status`. On a physical phone, replace `127.0.0.1` with the
+  computer's LAN IP and ensure the API is reachable. Restart Expo after editing
+  `.env`. Run `npx supabase migration up` for existing local databases.
+  Registration stores the chosen unique username and the self-reported age at
+  registration (13–150), not a continuously updated age. Existing profiles may
+  not have these fields. The profile screen still shows mock data.
+- **Email codes:** the confirmation and recovery templates send six-digit codes,
+  visible in the local email testing UI at `http://127.0.0.1:54324`. Local
+  registration currently does not require confirmation. Restart Supabase after
+  changing its configuration. Hosted projects must configure both email
+  templates to include `{{ .Token }}`, use six-digit codes, and configure email
+  delivery. Google and Apple buttons are disabled until SSO is implemented.
 
 ## Navigation & routing
 
