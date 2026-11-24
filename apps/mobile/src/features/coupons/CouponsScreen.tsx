@@ -52,7 +52,8 @@ export function CouponsScreen() {
       const nextCoupons = await fetchCoupons();
       setCoupons(nextCoupons);
       setError(false);
-    } catch {
+    } catch (error) {
+      console.error("Failed to load coupons", error);
       setError(true);
     }
   }, []);
