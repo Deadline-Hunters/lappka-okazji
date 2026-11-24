@@ -1,47 +1,62 @@
-import { router } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { useState } from "react";
+import { StyleSheet } from "react-native";
 
+import { Button } from "@/components/Button";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { useAuthSession } from "@/lib/auth-session";
+import { supabase } from "@/lib/supabase";
+import { spacing } from "@/theme";
+
+// First account from supabase/seed.sql, used only by this development shortcut.
+const DEV_SEED_USER = {
+  email: "kamil.seed@example.com",
+  password: "password",
+};
 
 export function AuthHeader() {
-  const { activateDevelopmentFlow } = useAuthSession();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  // TODO(auth): Remove this development-only handler after the user auth flow is implemented.
-  const handleTemporaryBack = () => {
-    if (!__DEV__) {
+  // TODO(auth): Remove this development-only shortcut after the user auth flow is implemented.
+  const handleDevSignIn = async () => {
+    if (!__DEV__ || isSigningIn) {
       return;
     }
 
-    activateDevelopmentFlow();
-    console.warn(
-      "[AuthHeader] Temporary development-only navigation: returning to the main view.",
-    );
-    router.replace("/(tabs)");
+    setIsSigningIn(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword(DEV_SEED_USER);
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error("[AuthHeader] Dev sign-in failed", error);
+    } finally {
+      setIsSigningIn(false);
+    }
   };
 
   return (
     <ScreenHeader
       title="Logowanie i rejestracja"
       left={
-        /*TODO(auth): Remove this development-only Pressable after the user auth flow is implemented.*/
         __DEV__ && (
-          <Pressable
-            accessibilityLabel="Wróć"
-            hitSlop={8}
-            onPress={handleTemporaryBack}
-            style={{
-              position: "absolute",
-              zIndex: 1,
-              backgroundColor: "#aaaaaaaa",
-              padding: 5,
-              borderRadius: 5,
-            }}
-          >
-            <Text style={{ color: "red" }}>[DEV] SKIP</Text>
-          </Pressable>
+          <Button
+            label="[DEV] Zaloguj"
+            accessibilityLabel="Zaloguj jako użytkownik testowy Kamil"
+            variant="secondary"
+            size="sm"
+            loading={isSigningIn}
+            onPress={handleDevSignIn}
+            style={styles.devSignIn}
+          />
         )
       }
     />
   );
 }
+
+const styles = StyleSheet.create({
+  devSignIn: {
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+  },
+});

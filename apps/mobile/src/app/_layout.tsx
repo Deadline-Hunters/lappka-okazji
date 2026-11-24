@@ -1,4 +1,4 @@
-import { Redirect, Stack, useSegments } from "expo-router";
+import { Redirect, Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogBox } from "react-native";
@@ -24,7 +24,6 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const [session, setSession] = useState<Session | null>(null);
-  const [isDevelopmentFlow, setIsDevelopmentFlow] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,6 +39,7 @@ function RootNavigator() {
   const continueAsGuest = useCallback(() => setGuest(true), [setGuest]);
   const exitGuestMode = useCallback(() => setGuest(false), [setGuest]);
   const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
     let isMounted = true;
@@ -88,12 +88,19 @@ function RootNavigator() {
 
   const isAuthRoute = segments[0] === "auth";
 
+  // The auth listener commits `session` after signInWithPassword resolves, so navigate
+  // from here once it is set instead of racing the state update in the sign-in caller.
+  useEffect(() => {
+    if (session && isAuthRoute) {
+      router.replace("/(tabs)");
+    }
+  }, [session, isAuthRoute, router]);
+
   if (isLoading) {
     return null;
   }
 
-  // TODO(auth): Remove this development-only bypass once the user auth flow is implemented.
-  if (!session && !isGuest && !isDevelopmentFlow && !isAuthRoute) {
+  if (!session && !isGuest && !isAuthRoute) {
     return <Redirect href="/auth" />;
   }
 
@@ -101,12 +108,6 @@ function RootNavigator() {
     <AuthSessionContext.Provider
       value={{
         session,
-        activateDevelopmentFlow: () => {
-          if (__DEV__) {
-            setIsDevelopmentFlow(true);
-          }
-        },
-        isDevelopmentFlow,
         isGuest,
         continueAsGuest,
         exitGuestMode,
