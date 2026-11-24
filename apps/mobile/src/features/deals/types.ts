@@ -32,6 +32,7 @@ export type Deal = {
   // Additional fields for rich presentation (from Figma KAN-12)
   badgeText?: string;
   couponCode?: string;
+  imageUrl?: string;
 };
 
 export const CATEGORIES: Record<

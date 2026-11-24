@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Linking, StyleSheet, Text, View } from "react-native";
 
@@ -259,14 +260,24 @@ export function MapScreen() {
               ) : null}
             </View>
 
-            <IconButton
-              icon="locate"
-              variant="surface"
-              size="lg"
-              color={colors.accent}
-              onPress={handleRecenter}
-              accessibilityLabel="Wycentruj na mojej pozycji"
-            />
+            <View style={styles.controlsCol}>
+              <IconButton
+                icon="locate"
+                variant="surface"
+                size="lg"
+                color={colors.accent}
+                onPress={handleRecenter}
+                accessibilityLabel="Wycentruj na mojej pozycji"
+              />
+              <IconButton
+                icon="add"
+                variant="surface"
+                size="lg"
+                color={colors.primary}
+                onPress={() => router.push("/add-deal")}
+                accessibilityLabel="Dodaj nową okazję"
+              />
+            </View>
           </View>
         </View>
 
@@ -334,6 +345,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: spacing.md,
     pointerEvents: "box-none",
+  },
+  controlsCol: {
+    gap: spacing.sm,
   },
   notices: {
     flex: 1,
