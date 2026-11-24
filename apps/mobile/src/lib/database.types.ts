@@ -210,6 +210,7 @@ export type Database = {
           description: string | null;
           discount_label: string | null;
           id: string;
+          image_url: string | null;
           location_id: string;
           moderation_status: Database["public"]["Enums"]["moderation_status"];
           old_price: number | null;
@@ -229,10 +230,11 @@ export type Database = {
           description?: string | null;
           discount_label?: string | null;
           id?: string;
+          image_url?: string | null;
           location_id: string;
           moderation_status?: Database["public"]["Enums"]["moderation_status"];
           old_price?: number | null;
-          price: number;
+          price?: number;
           title: string;
           updated_at?: string;
           valid_until: string;
@@ -247,6 +249,7 @@ export type Database = {
           description?: string | null;
           discount_label?: string | null;
           id?: string;
+          image_url?: string | null;
           location_id?: string;
           moderation_status?: Database["public"]["Enums"]["moderation_status"];
           old_price?: number | null;
@@ -389,24 +392,60 @@ export type Database = {
           submissions_count: number;
         }[];
       };
-      submit_deal: {
+      locations_near: {
         Args: {
-          p_category_id: string;
-          p_coupon_code?: string;
-          p_description?: string;
-          p_discount_label?: string;
-          p_location_address?: string;
-          p_location_id?: string;
-          p_location_latitude?: number;
-          p_location_longitude?: number;
-          p_location_name?: string;
-          p_old_price?: number;
-          p_price: number;
-          p_title: string;
-          p_valid_until: string;
+          p_latitude: number;
+          p_limit?: number;
+          p_longitude: number;
+          p_radius_m?: number;
         };
-        Returns: string;
+        Returns: {
+          address: string;
+          distance_m: number;
+          id: string;
+          latitude: number;
+          longitude: number;
+          name: string;
+        }[];
       };
+      submit_deal:
+        | {
+            Args: {
+              p_category_id: string;
+              p_coupon_code?: string;
+              p_description?: string;
+              p_discount_label?: string;
+              p_location_address?: string;
+              p_location_id?: string;
+              p_location_latitude?: number;
+              p_location_longitude?: number;
+              p_location_name?: string;
+              p_old_price?: number;
+              p_price: number;
+              p_title: string;
+              p_valid_until: string;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              p_category_id: string;
+              p_coupon_code?: string;
+              p_description?: string;
+              p_discount_label?: string;
+              p_image_url?: string;
+              p_location_address?: string;
+              p_location_id?: string;
+              p_location_latitude?: number;
+              p_location_longitude?: number;
+              p_location_name?: string;
+              p_old_price?: number;
+              p_price?: number;
+              p_title: string;
+              p_valid_until: string;
+            };
+            Returns: string;
+          };
     };
     Enums: {
       deal_vote: "confirm" | "deny";
