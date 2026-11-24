@@ -131,8 +131,7 @@ export function Step3Publish({
                         isSelected && styles.dayPillTextSelected,
                       ]}
                     >
-                      {days}{" "}
-                      {days === 2 || days === 3 || days === 4 ? "dni" : "dni"}
+                      {days} dni
                     </Text>
                   </Pressable>
                 );

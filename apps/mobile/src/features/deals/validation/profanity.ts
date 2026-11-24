@@ -66,6 +66,15 @@ const WHITELISTED_WORDS = [
   "paczek",
   "pączek",
   "pączki",
+  "szmatka",
+  "szmatki",
+  "szmatkę",
+  "szmatek",
+  "pedał",
+  "pedały",
+  "pedaly",
+  "pedałowe",
+  "pedalowe",
 ];
 
 /**
@@ -133,8 +142,12 @@ export function hasProfanity(text: string | null | undefined): boolean {
     );
   });
 
-  const textToCheck =
-    filteredWords.length > 0 ? filteredWords.join("") : normalizedRaw;
+  // If every word in the input was whitelisted, approve
+  if (filteredWords.length === 0) {
+    return false;
+  }
+
+  const textToCheck = filteredWords.join("");
   const processed = normalizeForProfanity(textToCheck);
 
   for (const root of POLISH_PROFANITY_ROOTS) {

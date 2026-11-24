@@ -69,7 +69,7 @@ export function getCalculatedExpirationDate(
   }
 
   if (customDate) {
-    return customDate;
+    return customDate instanceof Date ? customDate : new Date(customDate);
   }
 
   // Fallback: 3 days ahead
