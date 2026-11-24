@@ -5,8 +5,6 @@ import type { Session } from "@supabase/supabase-js";
 
 type AuthSessionContextValue = {
   session: Session | null;
-  activateDevelopmentFlow: () => void;
-  isDevelopmentFlow: boolean;
   // Browse-only mode: no account, persisted so the app opens straight to the tabs.
   isGuest: boolean;
   continueAsGuest: () => void;

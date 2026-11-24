@@ -208,8 +208,9 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   restart with `cd apps/mobile && npx expo start --clear`.
   `npm run mobile -- --clear` does not forward the flag.
 - **Expo Go can't connect:** turn off your VPN or try `npx expo start --tunnel`.
-- **Dev login shortcut:** the auth screen has a DEV SKIP button that goes
-  straight to the tabs, so Supabase isn't needed for UI work.
+- **Dev login shortcut:** the auth screen has a `[DEV] Zaloguj` button that
+  signs in as the first seeded user (`kamil.seed@example.com` / `password`). It
+  needs a running local Supabase (`npm run supabase:reset` loads the seed).
 - **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an
   account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
   account (voting, bookmarking, adding deals) with `useRequireAccount()` from

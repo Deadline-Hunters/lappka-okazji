@@ -25,7 +25,11 @@ insert into auth.users (
   raw_app_meta_data,
   raw_user_meta_data,
   created_at,
-  updated_at
+  updated_at,
+  confirmation_token,
+  recovery_token,
+  email_change_token_new,
+  email_change
 ) values
   (
     '00000000-0000-0000-0000-000000000000',
@@ -38,7 +42,11 @@ insert into auth.users (
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"first_name":"Kamil","last_name":"Kowalski","username":"Kamil_PK"}'::jsonb,
     '2025-01-15T10:00:00Z',
-    now()
+    now(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -51,7 +59,11 @@ insert into auth.users (
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"first_name":"Anna","last_name":"Nowak","username":"ania_nowak"}'::jsonb,
     '2025-02-03T09:30:00Z',
-    now()
+    now(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -64,7 +76,11 @@ insert into auth.users (
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"first_name":"Piotr","last_name":"Wiśniewski","username":"piotr_w"}'::jsonb,
     '2025-03-21T14:15:00Z',
-    now()
+    now(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '00000000-0000-0000-0000-000000000000',
@@ -77,7 +93,11 @@ insert into auth.users (
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"first_name":"Zofia","last_name":"Lewandowska","username":"zofia_l"}'::jsonb,
     '2025-04-08T18:45:00Z',
-    now()
+    now(),
+    '',
+    '',
+    '',
+    ''
   )
 on conflict (id) do nothing;
 
