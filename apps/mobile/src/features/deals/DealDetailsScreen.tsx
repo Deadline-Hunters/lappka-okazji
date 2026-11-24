@@ -21,6 +21,7 @@ import { IconButton } from "@/components/IconButton";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Toast } from "@/components/Toast";
 import { useUserLocation } from "@/features/map/useUserLocation";
+import { useRequireAccount } from "@/lib/auth-session";
 import { formatPrice } from "@/lib/format";
 import { colors, spacing } from "@/theme";
 
@@ -46,6 +47,7 @@ export function DealDetailsScreen() {
   );
 
   const { location: userLocation } = useUserLocation();
+  const requireAccount = useRequireAccount();
   const {
     votes,
     isBookmarked: checkBookmarked,
@@ -74,12 +76,12 @@ export function DealDetailsScreen() {
   }, []);
 
   const handleBookmarkToggle = useCallback(() => {
-    if (!deal) return;
+    if (!deal || !requireAccount()) return;
 
     const nextBookmarked = !isBookmarked;
     toggleBookmark(deal.id);
     showToast(nextBookmarked ? "Zapisano okazję" : "Usunięto z zapisanych");
-  }, [deal, isBookmarked, toggleBookmark, showToast]);
+  }, [deal, isBookmarked, requireAccount, toggleBookmark, showToast]);
 
   const handleShare = useCallback(async () => {
     if (!deal) return;
@@ -104,7 +106,7 @@ export function DealDetailsScreen() {
 
   const handleVote = useCallback(
     (nextVote: DealVote) => {
-      if (!deal) return;
+      if (!deal || !requireAccount()) return;
 
       const isClearing = vote === nextVote;
       toggleVote(deal.id, nextVote);
@@ -116,7 +118,7 @@ export function DealDetailsScreen() {
         );
       }
     },
-    [deal, vote, toggleVote, showToast],
+    [deal, vote, requireAccount, toggleVote, showToast],
   );
 
   const handleShowOnMap = useCallback(() => {

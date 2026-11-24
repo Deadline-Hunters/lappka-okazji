@@ -161,7 +161,7 @@ export function MapScreen() {
     lastHandledFocusKey.current = focusKey;
     hasCenteredOnUser.current = true;
 
-    if (!matchesCategory(targetDeal, category)) {
+    if (!matchesCategory(targetDeal, category, favorites)) {
       setCategory("all");
     }
     if (!matchesDealSearch(targetDeal, query)) {
@@ -170,7 +170,16 @@ export function MapScreen() {
 
     setSelectedDealId(targetDeal.id);
     flyTo(targetDeal.location, USER_ZOOM);
-  }, [focusedDealId, resolvedFocusNonce, deals, category, query, flyTo]);
+  }, [
+    focusedDealId,
+    resolvedFocusNonce,
+    deals,
+    category,
+    favorites,
+    query,
+    setCategory,
+    flyTo,
+  ]);
 
   // Center the map on the user once their position is first known.
   useEffect(() => {
