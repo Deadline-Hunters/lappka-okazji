@@ -10,80 +10,6 @@ export type StoreLocation = {
   distanceMeters?: number;
 };
 
-// Seed store locations in Kraków (matches initial database seed data for local/offline dev)
-const FALLBACK_STORES: StoreLocation[] = [
-  {
-    id: "10000000-0000-0000-0000-000000000001",
-    name: "Żabka",
-    address: "Rynek Główny 14",
-    latitude: 50.0624,
-    longitude: 19.9385,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000002",
-    name: "Biedronka",
-    address: "ul. Floriańska 32",
-    latitude: 50.0638,
-    longitude: 19.9398,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000003",
-    name: "Ksero Pod Palmą",
-    address: "ul. Karmelicka 5",
-    latitude: 50.064,
-    longitude: 19.9315,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000004",
-    name: "Piekarnia Pawlak",
-    address: "ul. Szewska 8",
-    latitude: 50.0619,
-    longitude: 19.9348,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000005",
-    name: "Kino Pod Baranami",
-    address: "Rynek Główny 27",
-    latitude: 50.0612,
-    longitude: 19.9356,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000006",
-    name: "Media Expert",
-    address: "ul. Floriańska 12",
-    latitude: 50.0645,
-    longitude: 19.9399,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000007",
-    name: "Pizzeria Trattoria",
-    address: "ul. Mikołajska 4",
-    latitude: 50.063,
-    longitude: 19.936,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000008",
-    name: "Awiteks",
-    address: "ul. Grodzka 12",
-    latitude: 50.0576,
-    longitude: 19.9375,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000009",
-    name: "Empik",
-    address: "Rynek Główny 5",
-    latitude: 50.0615,
-    longitude: 19.9365,
-  },
-  {
-    id: "10000000-0000-0000-0000-000000000010",
-    name: "Rossmann",
-    address: "ul. Karmelicka 18",
-    latitude: 50.0652,
-    longitude: 19.9298,
-  },
-];
-
 type LocationRpcRow = {
   id: string;
   name: string;
@@ -95,22 +21,26 @@ type LocationRpcRow = {
 
 /**
  * Fetches nearby stores/locations ordered by proximity to the provided center coordinate.
- * Attempts Supabase RPC first, then fallback to local seed data.
+ * Queries Supabase database directly without offline mock fallback.
  */
 export async function getNearbyStores(
   center: LatLng = DEFAULT_CENTER,
   radiusMeters = 5000,
 ): Promise<StoreLocation[]> {
   try {
-    const { data, error } = await supabase.rpc("locations_near", {
-      p_latitude: center.latitude,
-      p_longitude: center.longitude,
-      p_radius_m: radiusMeters,
-      p_limit: 50,
-    });
+    // 1. Try spatial RPC function first
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "locations_near",
+      {
+        p_latitude: center.latitude,
+        p_longitude: center.longitude,
+        p_radius_m: radiusMeters,
+        p_limit: 50,
+      },
+    );
 
-    if (!error && Array.isArray(data) && data.length > 0) {
-      return (data as LocationRpcRow[]).map((item) => ({
+    if (!rpcError && Array.isArray(rpcData)) {
+      return (rpcData as LocationRpcRow[]).map((item) => ({
         id: item.id,
         name: item.name,
         address: item.address ?? undefined,
@@ -119,22 +49,38 @@ export async function getNearbyStores(
         distanceMeters: Math.round(item.distance_m),
       }));
     }
+
+    // 2. Direct table fallback if RPC is not deployed yet
+    const { data: tableData, error: tableError } = await supabase
+      .from("locations")
+      .select("id, name, address, latitude, longitude")
+      .limit(50);
+
+    if (!tableError && Array.isArray(tableData)) {
+      return tableData
+        .map((loc) => ({
+          id: loc.id,
+          name: loc.name,
+          address: loc.address ?? undefined,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          distanceMeters: Math.round(
+            distanceInMeters(center, {
+              latitude: loc.latitude,
+              longitude: loc.longitude,
+            }),
+          ),
+        }))
+        .filter(
+          (loc) =>
+            loc.distanceMeters === undefined ||
+            loc.distanceMeters <= radiusMeters,
+        )
+        .sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0));
+    }
   } catch (err) {
-    console.warn(
-      "[storeLocationsService] RPC locations_near unavailable:",
-      err,
-    );
+    console.warn("[storeLocationsService] Failed to fetch stores:", err);
   }
 
-  // Graceful fallback for offline dev/mock
-  return FALLBACK_STORES.map((store) => {
-    const distance = distanceInMeters(center, {
-      latitude: store.latitude,
-      longitude: store.longitude,
-    });
-    return {
-      ...store,
-      distanceMeters: Math.round(distance),
-    };
-  }).sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0));
+  return [];
 }

@@ -167,9 +167,11 @@ export function Step1Details({ data, errors, onChange }: Props) {
           value={data.title}
           onChangeText={(title) => onChange({ title })}
           error={errors.title}
-          hint="Krótka, konkretna nazwa produktu lub promocji (3–120 znaków)."
           maxLength={120}
         />
+        <Text style={styles.helperText}>
+          Krótka, konkretna nazwa produktu lub promocji (3–120 znaków).
+        </Text>
       </View>
 
       {/* 3. Kategoria okazji */}
@@ -216,7 +218,8 @@ export function Step1Details({ data, errors, onChange }: Props) {
       {/* 4. Cena promocyjna (opcjonalnie) */}
       <View style={styles.section}>
         <TextField
-          label="Cena promocyjna (zł, opcjonalnie)"
+          label="Cena promocyjna (zł)"
+          hint="opcjonalnie"
           placeholder="np. 9.99 (0 = Gratis)"
           keyboardType="decimal-pad"
           value={data.price != null ? String(data.price) : ""}
@@ -226,8 +229,10 @@ export function Step1Details({ data, errors, onChange }: Props) {
             onChange({ price: isNaN(num) ? undefined : num });
           }}
           error={errors.price}
-          hint="Pozostaw puste, jeśli okazja dotyczy zniżki procentowej lub gratisu."
         />
+        <Text style={styles.helperText}>
+          Pozostaw puste, jeśli okazja dotyczy zniżki procentowej lub gratisu.
+        </Text>
       </View>
     </View>
   );
@@ -322,5 +327,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.danger,
     marginTop: spacing.xs,
+  },
+  helperText: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+    lineHeight: 16,
   },
 });

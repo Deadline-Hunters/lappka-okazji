@@ -1,5 +1,5 @@
 import { router, Stack } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   BackHandler,
@@ -44,8 +44,14 @@ export function AddDealScreen() {
   const [errors, setErrors] = useState<DealFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
 
   const isAuthenticated = session != null;
+
+  // Scroll to top when changing steps
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [currentStep]);
 
   // Check if user has entered any data (to confirm before abandoning form)
   const isDirty =
@@ -80,6 +86,8 @@ export function AddDealScreen() {
 
   // Handle hardware Android back button
   useEffect(() => {
+    if (Platform.OS === "web") return;
+
     const onBackPress = () => {
       handleBack();
       return true;
@@ -216,6 +224,7 @@ export function AddDealScreen() {
           style={styles.flex}
         >
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}

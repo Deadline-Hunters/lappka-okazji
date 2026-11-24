@@ -1,18 +1,7 @@
-import {
-  collapseDuplicatesTransformer,
-  DataSet,
-  parseRawPattern,
-  RegExpMatcher,
-  resolveConfusablesTransformer,
-  resolveLeetSpeakTransformer,
-  skipNonAlphabeticTransformer,
-  toAsciiLowerCaseTransformer,
-} from "obscenity";
-
 import { normalizeText } from "../../../lib/search";
 
-// Roots and common leetspeak variations of Polish profanities
-const POLISH_PROFANITY_PATTERNS = [
+// Roots and common leetspeak/phonetic patterns of Polish profanities
+const POLISH_PROFANITY_ROOTS = [
   "kurw",
   "k0rw",
   "korw",
@@ -39,92 +28,123 @@ const POLISH_PROFANITY_PATTERNS = [
   "g0wn",
   "kutas",
   "szmat",
-  "szm@t",
   "pedal",
+  "cwel",
 ];
 
-// Terms that might accidentally match root fragments but are completely valid Polish words
-const WHITELISTED_TERMS = [
+// Polish words that contain root fragments but are completely benign
+const WHITELISTED_WORDS = [
   "sukienka",
   "sukienki",
   "sukience",
   "sukienek",
+  "sukienkowy",
   "kuchnia",
+  "kuchnie",
+  "kuchni",
   "kucharz",
   "kuchenka",
   "kuchenny",
   "rachunek",
   "rachunki",
+  "rachunkowy",
   "recepta",
   "recepty",
   "przeboj",
   "przebojowy",
+  "przebojem",
   "szacunek",
+  "szacunku",
   "poradnik",
   "ciepły",
   "ciepla",
   "cieplo",
   "ciepłe",
+  "cieplutki",
   "kawa",
   "obiad",
   "paczek",
   "pączek",
+  "pączki",
 ];
 
-let cachedMatcher: RegExpMatcher | null = null;
+/**
+ * Normalizes text for profanity detection:
+ * - strips Polish diacritics (normalizeText)
+ * - maps common leetspeak substitutions to standard Latin characters
+ * - collapses repeated consecutive letters (e.g. "kkuuurrrwwaa" -> "kurwa")
+ */
+function normalizeForProfanity(input: string): string {
+  // 1. Strip Polish accents and lowercase
+  let s = normalizeText(input).toLowerCase();
 
-function getMatcher(): RegExpMatcher {
-  if (cachedMatcher) {
-    return cachedMatcher;
-  }
+  // 2. Leetspeak substitutions
+  s = s
+    .replace(/0/g, "o")
+    .replace(/1/g, "i")
+    .replace(/3/g, "e")
+    .replace(/4/g, "a")
+    .replace(/@/g, "a")
+    .replace(/\$/g, "s")
+    .replace(/5/g, "s")
+    .replace(/7/g, "t")
+    .replace(/8/g, "b")
+    .replace(/v/g, "u")
+    .replace(/[\s._\-–—,*+!?/\\#~=^()]+/g, ""); // strip spacing / punctuation between letters
 
-  const dataset = new DataSet();
+  // 3. Collapse duplicate consecutive characters (e.g. "kuuurrwwa" -> "kurwa")
+  s = s.replace(/(.)\1+/g, "$1");
 
-  for (const patternString of POLISH_PROFANITY_PATTERNS) {
-    dataset.addPhrase((phrase) =>
-      phrase.addPattern(parseRawPattern(patternString)),
-    );
-  }
-
-  for (const whitelisted of WHITELISTED_TERMS) {
-    dataset.addPhrase((phrase) => phrase.addWhitelistedTerm(whitelisted));
-  }
-
-  cachedMatcher = new RegExpMatcher({
-    blacklistMatcherTransformers: [
-      resolveConfusablesTransformer(),
-      resolveLeetSpeakTransformer(),
-      toAsciiLowerCaseTransformer(),
-      skipNonAlphabeticTransformer(),
-      collapseDuplicatesTransformer(),
-    ],
-    ...dataset.build(),
-  });
-
-  return cachedMatcher;
+  return s;
 }
 
 /**
  * Checks whether the supplied text contains Polish vulgarisms or offensive language.
- * Handles diacritics, leetspeak (e.g. 0->o, 1->i), spaced letters (k.u.r.w.a),
- * and avoids common false positives (e.g. "sukienka", "kuchnia").
+ * Handles diacritics, leetspeak, spaced letters (k.u.r.w.a), and avoids common false positives.
+ * Fully compatible with React Native (iOS, Android) and Web (no bundling/ESM interop issues).
  */
 export function hasProfanity(text: string | null | undefined): boolean {
   if (!text) {
     return false;
   }
 
-  const trimmed = text.trim();
-  if (trimmed === "") {
+  const raw = text.trim();
+  if (raw === "") {
     return false;
   }
 
-  const matcher = getMatcher();
+  // Check if the text matches a whitelisted term exactly or word-by-word
+  const normalizedWords = normalizeText(raw).toLowerCase().split(/\s+/);
+  const normalizedRaw = normalizeForProfanity(raw);
 
-  // Test against original string as well as normalized (without Polish diacritics)
-  const normalized = normalizeText(trimmed);
+  // If entire input is whitelisted, approve
+  for (const whitelisted of WHITELISTED_WORDS) {
+    const normWhite = normalizeForProfanity(whitelisted);
+    if (normalizedRaw === normWhite) {
+      return false;
+    }
+  }
 
-  return matcher.hasMatch(trimmed) || matcher.hasMatch(normalized);
+  // Check whitelisted words in sentence context
+  const filteredWords = normalizedWords.filter((w) => {
+    const cleanWord = normalizeForProfanity(w);
+    return !WHITELISTED_WORDS.some(
+      (white) => normalizeForProfanity(white) === cleanWord,
+    );
+  });
+
+  const textToCheck =
+    filteredWords.length > 0 ? filteredWords.join("") : normalizedRaw;
+  const processed = normalizeForProfanity(textToCheck);
+
+  for (const root of POLISH_PROFANITY_ROOTS) {
+    const normalizedRoot = normalizeForProfanity(root);
+    if (processed.includes(normalizedRoot)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export const PROFANITY_ERROR_MESSAGE =
