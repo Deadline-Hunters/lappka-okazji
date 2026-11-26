@@ -145,10 +145,6 @@ export function AddDealScreen() {
     const fullValidation = validateAll(formData);
     if (!fullValidation.isValid) {
       setErrors(fullValidation.errors);
-      Alert.alert(
-        "Błąd formularza",
-        "Popraw zaznaczone pola przed publikacją okazji.",
-      );
       return;
     }
 
@@ -167,11 +163,7 @@ export function AddDealScreen() {
         router.replace("/(tabs)/deals");
       }, 1500);
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Wystąpił nieoczekiwany błąd podczas publikacji okazji.";
-      Alert.alert("Nie udało się opublikować okazji", msg);
+      console.error("[AddDealScreen] Failed to publish deal:", err);
     } finally {
       setIsSubmitting(false);
     }

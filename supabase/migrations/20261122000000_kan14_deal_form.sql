@@ -85,7 +85,14 @@ $function$;
 grant execute on function public.locations_near(double precision, double precision, integer, integer)
   to anon, authenticated, service_role;
 
--- 4. Update submit_deal function to support image_url and optional price ------
+-- 4. Replace submit_deal with a version that supports image_url and an optional
+-- price. Drop the old overload first: two functions with the same named
+-- arguments make PostgREST calls ambiguous.
+drop function if exists public.submit_deal(
+  text, text, numeric, timestamp with time zone, uuid, text, text,
+  double precision, double precision, text, numeric, text, text
+);
+
 create or replace function public.submit_deal (
   p_category_id        text,
   p_title              text,

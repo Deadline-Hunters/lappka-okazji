@@ -65,7 +65,8 @@ export function Step2Location({ data, errors, onChange }: Props) {
       setStoreFetchError(null);
       const list = await getNearbyStores(centerPoint, 5000);
       setStores(list);
-    } catch {
+    } catch (err) {
+      console.error("[Step2Location] Failed to load nearby stores:", err);
       setStoreFetchError(
         "Nie udało się pobrać listy pobliskich sklepów. Możesz wskazać punkt ręcznie.",
       );

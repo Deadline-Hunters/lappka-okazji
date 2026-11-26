@@ -408,44 +408,25 @@ export type Database = {
           name: string;
         }[];
       };
-      submit_deal:
-        | {
-            Args: {
-              p_category_id: string;
-              p_coupon_code?: string;
-              p_description?: string;
-              p_discount_label?: string;
-              p_location_address?: string;
-              p_location_id?: string;
-              p_location_latitude?: number;
-              p_location_longitude?: number;
-              p_location_name?: string;
-              p_old_price?: number;
-              p_price: number;
-              p_title: string;
-              p_valid_until: string;
-            };
-            Returns: string;
-          }
-        | {
-            Args: {
-              p_category_id: string;
-              p_coupon_code?: string;
-              p_description?: string;
-              p_discount_label?: string;
-              p_image_url?: string;
-              p_location_address?: string;
-              p_location_id?: string;
-              p_location_latitude?: number;
-              p_location_longitude?: number;
-              p_location_name?: string;
-              p_old_price?: number;
-              p_price?: number;
-              p_title: string;
-              p_valid_until: string;
-            };
-            Returns: string;
-          };
+      submit_deal: {
+        Args: {
+          p_category_id: string;
+          p_coupon_code?: string;
+          p_description?: string;
+          p_discount_label?: string;
+          p_image_url?: string;
+          p_location_address?: string;
+          p_location_id?: string;
+          p_location_latitude?: number;
+          p_location_longitude?: number;
+          p_location_name?: string;
+          p_old_price?: number;
+          p_price?: number;
+          p_title: string;
+          p_valid_until: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       deal_vote: "confirm" | "deny";

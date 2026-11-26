@@ -71,6 +71,8 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   everything the user sees: titles, labels, messages, `accessibilityLabel`s,
   permission strings and mock data. Legacy exception: the `DealCategory` keys
   (`jedzenie`, `kawa`, …) are Polish.
+- **Errors:** log failures with `console.error` and useful context; don't show
+  `Alert` popups for errors. Keep validation feedback inline in the UI.
 - **Expo Go only.** The team tests with `npx expo start` and Expo Go on Android.
   Don't add native modules that Expo Go doesn't ship, because that would force a
   dev build on everyone. Raise it with the team first. No EAS builds; discuss
