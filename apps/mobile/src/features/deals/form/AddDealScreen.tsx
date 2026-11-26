@@ -7,11 +7,11 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -213,7 +213,12 @@ export function AddDealScreen() {
           title="Dodaj okazję"
           onBack={handleBack}
           right={
-            <Text style={styles.stepCounterText}>Krok {currentStep} z 3</Text>
+            <Badge
+              label={`Krok ${currentStep} z 3`}
+              tone="primary"
+              size="md"
+              style={styles.stepCounter}
+            />
           }
         />
 
@@ -305,10 +310,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl * 2,
     gap: spacing.lg,
   },
-  stepCounterText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.primaryDark,
+  stepCounter: {
+    marginRight: spacing.sm,
   },
   authGateContainer: {
     flex: 1,

@@ -76,9 +76,12 @@ type Props = {
 // The scale on selection happens on .marker__body, because MapLibre positions .marker itself with a transform.
 // Don't set "position" on .marker / .me - MapLibre makes markers absolute; overriding it stacks them in the
 // page flow and every pin ends up shifted down by the ones before it.
+// One layout for both hosts: the WebView root fills the screen on native, while RN Web gives
+// the Step 2 host View `position: relative`, so the absolutely positioned map fills that view.
 const CSS = `
   html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-  .map { position: fixed; inset: 0; }
+  #root { position: relative; }
+  .map { position: absolute; inset: 0; }
   .marker { width: 40px; height: 48px; cursor: pointer; }
   .marker--selected { z-index: 2; }
   .marker__body {
