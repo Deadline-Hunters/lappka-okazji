@@ -1,5 +1,11 @@
 import { router, Stack } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentRef,
+} from "react";
 import {
   Alert,
   BackHandler,
@@ -13,10 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { EmptyState } from "@/components/EmptyState";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Toast } from "@/components/Toast";
-import { useAuthSession } from "@/lib/auth-session";
+import { useAuthSession, useRequireAccount } from "@/lib/auth-session";
 import { colors, spacing } from "@/theme";
 
 import { Step1Details } from "./Step1Details";
@@ -29,7 +34,6 @@ import {
   validateAll,
   validateStep1,
   validateStep2,
-  validateStep3,
   type DealFormData,
   type DealFormErrors,
 } from "../validation/dealFormValidation";
@@ -38,6 +42,7 @@ type Step = 1 | 2 | 3;
 
 export function AddDealScreen() {
   const { session } = useAuthSession();
+  const requireAccount = useRequireAccount();
 
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [formData, setFormData] = useState<DealFormData>(INITIAL_FORM_DATA);
@@ -45,8 +50,6 @@ export function AddDealScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
-
-  const isAuthenticated = session != null;
 
   // Scroll to top when changing steps
   useEffect(() => {
@@ -137,6 +140,8 @@ export function AddDealScreen() {
   };
 
   const handleSubmit = async () => {
+    if (!requireAccount()) return;
+
     const fullValidation = validateAll(formData);
     if (!fullValidation.isValid) {
       setErrors(fullValidation.errors);
@@ -147,22 +152,13 @@ export function AddDealScreen() {
       return;
     }
 
-    if (!isAuthenticated || !session?.user?.id) {
-      Alert.alert(
-        "Wymagane logowanie",
-        "Musisz być zalogowany, aby móc opublikować okazję.",
-        [
-          { text: "Anuluj", style: "cancel" },
-          { text: "Zaloguj się", onPress: () => router.push("/auth") },
-        ],
-      );
-      return;
-    }
+    // Non-guests always have a session here (the root layout redirects others to /auth).
+    const userId = session?.user.id;
+    if (!userId) return;
 
     try {
       setIsSubmitting(true);
 
-      const userId = session.user.id;
       await submitDeal(formData, userId);
 
       setToastMessage("Okazja została pomyślnie opublikowana!");
@@ -180,30 +176,6 @@ export function AddDealScreen() {
       setIsSubmitting(false);
     }
   };
-
-  // If user is not authenticated
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-          <ScreenHeader title="Dodaj okazję" onBack={() => router.back()} />
-          <View style={styles.authGateContainer}>
-            <EmptyState
-              icon="lock-closed-outline"
-              title="Wymagane logowanie"
-              message="Tylko zalogowani użytkownicy mogą dodawać nowe okazje do społeczności Łappki Okazji."
-              action={{
-                label: "Przejdź do logowania",
-                onPress: () => router.push("/auth"),
-              }}
-              fill
-            />
-          </View>
-        </SafeAreaView>
-      </>
-    );
-  }
 
   return (
     <>
@@ -312,11 +284,6 @@ const styles = StyleSheet.create({
   },
   stepCounter: {
     marginRight: spacing.sm,
-  },
-  authGateContainer: {
-    flex: 1,
-    padding: spacing.lg,
-    justifyContent: "center",
   },
   navigationRow: {
     flexDirection: "row",
