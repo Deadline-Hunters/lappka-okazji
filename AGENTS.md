@@ -12,10 +12,12 @@ project **KAN**, and the UI is designed in Figma.
 
 ## Stack
 
-- Monorepo with npm workspaces (`apps/*`, `packages/*`). Node >= 24, npm 10. The
-  root `package-lock.json` is the real lock file.
-- `apps/mobile`: **Expo SDK 58**, React Native 0.88, React 19.3, **Expo Router**
-  with typed routes, TypeScript `strict`, `@/*` → `apps/mobile/src/*`.
+- Monorepo with npm workspaces (`apps/*`, `packages/*`). Required Node/npm
+  versions are in `package.json` `engines`. The root `package-lock.json` is the
+  real lock file.
+- `apps/mobile`: **Expo SDK**, React Native, React, **Expo Router** with typed
+  routes, TypeScript `strict`, `@/*` → `apps/mobile/src/*`. Versions live in
+  `apps/mobile/package.json`.
 - Backend: **Supabase, run locally** (Docker + Supabase CLI,
   `supabase/config.toml`). Data, auth users and storage don't sync between
   developers, so migrations and `seed.sql` must be committed. The schema lives
@@ -29,23 +31,24 @@ project **KAN**, and the UI is designed in Figma.
 Expo ships breaking changes every SDK release. Before writing code that touches
 an Expo or React Native API:
 
-1. Check the `expo` version in `apps/mobile/package.json` (currently 58).
-2. Read the matching docs: <https://docs.expo.dev/versions/v58.0.0/>
-3. For anything else, start from <https://docs.expo.dev/llms.txt> and never
+1. Check the installed `expo` version in `apps/mobile/package.json`.
+2. Read the docs for that SDK version (start from
+   <https://docs.expo.dev/llms.txt> and follow the version link) and never
    answer from memory.
 
 ## Commands (from the repo root)
 
 ```bash
-npm install                 # first time; also installs the husky pre-commit hook
-npm run mobile              # expo start in apps/mobile, then scan the QR code with Expo Go (Android)
+npm install                 # first time; also installs the git hooks
+npm run mobile              # Expo server; open with Expo Go (Android)
 npm run mobile:web          # quick check in a browser
-npm run format              # Prettier --write
-npm run format:check        # Prettier --check (CI)
-npm run typecheck           # tsc --noEmit for apps/mobile (CI)
+npm run format              # format code
+npm run format:check        # check formatting
+npm run lint                # run ESLint
+npm run typecheck           # check TypeScript types
 npm run supabase:start      # local Supabase (needs Docker)
 npm run db:types            # regenerate database.types.ts from local Supabase
-npm run db:types:check      # verify the committed types are current (CI)
+npm run db:types:check      # verify committed types are current
 cd apps/mobile && npx expo install <pkg>    # add deps, never a bare `npm i`
 cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 ```
@@ -54,15 +57,12 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   hand. After changing a migration, run `npm run supabase:start` then
   `npm run db:types`, and commit the regenerated file.
 - `npm run db:types:check` regenerates the types in memory and exits non-zero if
-  the committed file is stale; it never writes to the file. CI runs it in
-  `.github/workflows/db-types.yml`, but only when the database or the types file
-  changes.
-- There is no lint or test step. CI (`.github/workflows/ci.yml`) runs `npm ci`,
-  then `format:check`, then `typecheck` on every PR and on pushes to `develop`,
-  `test` and `main`.
-- The pre-commit hook runs `lint-staged` (Prettier check on the staged files),
-  then `git diff --check --cached`, then `typecheck`. Don't skip it.
-- Run `npm run format` and `npm run typecheck` before calling a task done.
+  the committed file is stale; it never writes to the file. CI runs it when the
+  database or the types file changes.
+- The scripts in `package.json` are the source of truth for quality checks. CI
+  (`.github/workflows/ci.yml`) and the git hook (`.husky/pre-commit`) run them,
+  so don't skip them.
+- Run the project's quality scripts before calling a task done.
 
 ## Rules
 
@@ -73,8 +73,8 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   (`jedzenie`, `kawa`, …) are Polish.
 - **Expo Go only.** The team tests with `npx expo start` and Expo Go on Android.
   Don't add native modules that Expo Go doesn't ship, because that would force a
-  dev build on everyone. Raise it with the team first. No EAS builds and no
-  CI/CD changes for now.
+  dev build on everyone. Raise it with the team first. No EAS builds; discuss
+  CI/CD changes before making them.
 - **Structure:**
   - A feature lives in `src/features/<feature>/` (screen, `components/`,
     `types.ts`, `mock*.ts`).
@@ -194,7 +194,7 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   Expo Go), `expo-maps` (Google only, no Expo Go), native MapLibre RN (needs a
   dev build), CARTO basemaps (needs a key).
 - `LogBox.ignoreLogs(["DomWebView.injectJavaScript"])` in the root layout works
-  around an SDK 58 bug. Leave it in.
+  around a known Expo DOM bug. Leave it in.
 
 ## Gotchas
 
@@ -208,9 +208,8 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   restart with `cd apps/mobile && npx expo start --clear`.
   `npm run mobile -- --clear` does not forward the flag.
 - **Expo Go can't connect:** turn off your VPN or try `npx expo start --tunnel`.
-- **Dev login shortcut:** the auth screen has a `[DEV] Zaloguj` button that
-  signs in as the first seeded user (`kamil.seed@example.com` / `password`). It
-  needs a running local Supabase (`npm run supabase:reset` loads the seed).
+- **Dev login shortcut:** the auth screen has a dev button that signs in as a
+  seeded user. It needs a running local Supabase with the seed loaded.
 - **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an
   account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
   account (voting, bookmarking, adding deals) with `useRequireAccount()` from
@@ -225,9 +224,8 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
 
 ## Deal submission form (`features/deals/form/`)
 
-- Route: `/add-deal` (`src/app/add-deal.tsx`). Only authenticated users can
-  access the form; unauthenticated users are gated with a redirect to `/auth`
-  (or dev bypass indicator in DEV mode).
+- Route: `/add-deal` (`src/app/add-deal.tsx`). Guests can open the form, but
+  publishing requires an account and prompts them to sign in.
 - 3-step wizard:
   - Step 1: photo (`expo-image-picker`), title, category (`CATEGORIES`),
     optional price.
@@ -246,31 +244,11 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
 
 ## Documentation maintenance
 
-Agents are strictly required to keep the root `README.md` in sync with the
-repository state:
+Keep the root `README.md` accurate about features, setup, architecture and how
+to run the project. Update it in the same task when a change affects those
+things, and never describe mocks or plans as implemented.
 
-1. **Mandatory README updates on impact:** Agents must update `README.md`
-   whenever introducing a change that impacts project documentation.
-2. **Same-task scope:** Any update to `README.md` must be completed within the
-   exact same task/PR as the accompanying application changes.
-3. **Specific triggers for documentation updates:**
-   - Adding new features, views, or capabilities.
-   - Modifying, deprecating, or removing existing features.
-   - Changes to architecture, modules, or directory structure.
-   - Adding, updating, or removing dependencies.
-   - Changes to environment configuration (`.env`, environment variables).
-   - Changes to installation, setup, services (e.g. Supabase, Docker), or run
-     scripts.
-   - Changes to underlying technologies, libraries, or external integrations.
-4. **Reflect factual implementation:** `README.md` must always reflect the
-   factual, implemented reality of the repository, never aspirational plans or
-   design goals alone.
-5. **No mock/placeholder misrepresentation:** Never mark or describe a feature
-   as implemented if it is currently only a mockup, placeholder, prototype, or
-   documented idea. Always clearly distinguish between fully implemented,
-   partial/mocked, and planned features.
-6. **No unnecessary modifications:** If a change does not affect the content or
-   accuracy of `README.md`, do not modify the file unnecessarily.
-7. **Pre-completion verification:** Before marking any task as complete, verify
-   that `README.md` remains accurate, up-to-date, and that no relevant changes
-   were omitted.
+Don't duplicate volatile details in docs. Dependency versions, individual
+rule/config names, exact hook or CI step lists, and file inventories belong in
+`package.json`, the config files and the source — point to them instead of
+copying their contents, so routine commits don't require doc edits.

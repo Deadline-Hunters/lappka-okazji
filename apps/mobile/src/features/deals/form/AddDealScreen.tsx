@@ -49,7 +49,7 @@ export function AddDealScreen() {
   const [errors, setErrors] = useState<DealFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
 
   // Scroll to top when changing steps
   useEffect(() => {

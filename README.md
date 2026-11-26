@@ -4,8 +4,8 @@
 > się lokalnymi okazjami cenowymi w czasie rzeczywistym.
 
 [![Projekt studencki](https://img.shields.io/badge/status-MVP%20%28in%20progress%29-orange.svg)](https://github.com/Deadline-Hunters/lappka-okazji)
-[![Expo](https://img.shields.io/badge/Expo-SDK%2058-blue.svg)](https://expo.dev)
-[![React Native](https://img.shields.io/badge/React%20Native-0.88.1-61dafb.svg)](https://reactnative.dev)
+[![Expo](https://img.shields.io/badge/Expo-SDK-blue.svg)](https://expo.dev)
+[![React Native](https://img.shields.io/badge/React%20Native-61dafb.svg)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/backend-Supabase%20%28local%29-3ecf8e.svg)](https://supabase.com)
 
@@ -182,6 +182,7 @@ zalogowanych użytkowników.
 - **Backend i Storage:** Bezpieczne przesyłanie zdjęć do Supabase Storage
   (bucket `deal-images`), wywołanie procedury `submit_deal` z kontrolą RLS oraz
   automatyczne czyszczenie osieroconych plików w przypadku błędu bazy.
+- **Konto:** Publikacja wymaga konta — gość otrzymuje monit o zalogowanie.
 
 #### Kupony (`src/features/coupons`)
 
@@ -235,58 +236,62 @@ W projekcie wykorzystywane są wyłącznie sprawdzone, nowoczesne technologie ze
 
 ### Frontend mobilny
 
-- **React Native (0.88.1):** framework bazowy do budowy wieloplatformowej
-  aplikacji mobilnej.
-- **Expo SDK (58.0.21):** platforma deweloperska. Aplikacja jest zoptymalizowana
-  pod kątem działania w **Expo Go** (Android / iOS).
-- **React (19.3.0) & React DOM (19.3.0):** biblioteka interfejsu użytkownika.
-- **Expo Router (58.0.29):** routing oparty na strukturze plików w katalogu
-  `src/app/`, ze ścisłą kontrolą typów tras (`typedRoutes`).
-- **TypeScript (~6.0.3):** statyczne typowanie w trybie `strict`.
+- **React Native:** framework bazowy do budowy wieloplatformowej aplikacji
+  mobilnej.
+- **Expo SDK:** platforma deweloperska. Aplikacja jest zoptymalizowana pod kątem
+  działania w **Expo Go** (Android / iOS).
+- **React & React DOM:** biblioteka interfejsu użytkownika.
+- **Expo Router:** routing oparty na strukturze plików w katalogu `src/app/`, ze
+  ścisłą kontrolą typów tras (`typedRoutes`).
+- **TypeScript:** statyczne typowanie w trybie `strict`.
+
+Aktualne wersje zależności są zawsze w `apps/mobile/package.json` i
+`package-lock.json`.
 
 ### Moduły natywne i biblioteki Expo
 
-- **`expo-location` (~58.0.20):** obsługa geolokalizacji urządzenia (pozwolenia
-  czasu użycia, współrzędne GPS).
-- **`expo-image-picker` (~58.0.10):** obsługa wyboru zdjęć z galerii oraz
-  wykonywania zdjęć aparatem w formularzu okazji (kompatybilne z Expo Go).
-- **`expo-clipboard` (~58.0.4):** dostęp do schowka systemowego (kopiowanie
-  kodów rabatowych).
-- **`expo-secure-store` (^58.0.2):** bezpieczne szyfrowane przechowywanie danych
+- **`expo-location`:** obsługa geolokalizacji urządzenia (pozwolenia czasu
+  użycia, współrzędne GPS).
+- **`expo-image-picker`:** obsługa wyboru zdjęć z galerii oraz wykonywania zdjęć
+  aparatem w formularzu okazji (kompatybilne z Expo Go).
+- **`expo-clipboard`:** dostęp do schowka systemowego (kopiowanie kodów
+  rabatowych).
+- **`expo-secure-store`:** bezpieczne szyfrowane przechowywanie danych
   uwierzytelniających.
-- **`@react-native-async-storage/async-storage` (2.2.0):** persystencja sesji i
-  lokalna pamięć podręczna.
-- **`react-native-qrcode-svg` (^6.3.54) & `react-native-svg` (15.16.0):**
-  generowanie grafiki wektorowej kodów QR.
-- **`@expo/vector-icons` (^15.0.2):** zestaw ikon systemowych (Ionicons).
-- **`react-native-safe-area-context` (~5.10.1):** poprawna obsługa wcięć
-  ekranowych (Safe Area insets).
-- **`react-native-screens` (~4.30.1):** natywne zarządzanie pamięcią ekranów
+- **`@react-native-async-storage/async-storage`:** persystencja sesji i lokalna
+  pamięć podręczna.
+- **`react-native-qrcode-svg` & `react-native-svg`:** generowanie grafiki
+  wektorowej kodów QR.
+- **`@expo/vector-icons`:** zestaw ikon systemowych (Ionicons).
+- **`react-native-safe-area-context`:** poprawna obsługa wcięć ekranowych (Safe
+  Area insets).
+- **`react-native-screens`:** natywne zarządzanie pamięcią ekranów
   nawigacyjnych.
 
 ### Kartografia i geodane
 
-- **MapLibre GL JS (5.24.0):** silnik renderujący mapy wektorowe WebGL,
-  uruchamiany w komponencie Expo DOM (`"use dom"`), co pozwala ominąć brak
-  natywnego wsparcia dla otwartych kafelków w czystym Expo Go.
+- **MapLibre GL JS:** silnik renderujący mapy wektorowe WebGL, uruchamiany w
+  komponencie Expo DOM (`"use dom"`), co pozwala ominąć brak natywnego wsparcia
+  dla otwartych kafelków w czystym Expo Go.
 - **OpenFreeMap:** darmowe wektorowe kafelki mapowe bazujące na danych
   OpenStreetMap (styl „liberty”, polskie nazewnictwo ulic i miast).
 
 ### Backend (lokalny)
 
-- **Supabase (CLI ^2.122.0):** lokalna instancja backendu uruchamiana w
-  kontenerach Docker (PostgreSQL 17, PostgREST, GoTrue Auth).
-- **`@supabase/supabase-js` (^2.118.0):** oficjalny klient JavaScript/TypeScript
-  do komunikacji z bazą i autoryzacją.
+- **Supabase CLI:** lokalna instancja backendu uruchamiana w kontenerach Docker
+  (PostgreSQL, PostgREST, GoTrue Auth).
+- **`@supabase/supabase-js`:** oficjalny klient JavaScript/TypeScript do
+  komunikacji z bazą i autoryzacją.
 
 ### Narzędzia i jakość kodu
 
 - **npm workspaces:** zarządzanie monorepo (`apps/*`, `packages/*`).
-- **Prettier (^3.9.10):** formatowanie kodu.
-- **Husky (^9.1.7) & lint-staged (^16.4.0):** automatyczne sprawdzanie
-  formatowania i typowania przed zatwierdzeniem commita.
-- **GitHub Actions:** ciągła integracja (CI) weryfikująca formatowanie i typy
-  przy każdym Pull Requeście.
+- **Prettier:** formatowanie kodu.
+- **ESLint:** statyczna analiza kodu (konfiguracja w
+  `apps/mobile/eslint.config.js`).
+- **Husky & lint-staged:** automatyczne sprawdzanie kodu przed zatwierdzeniem
+  commita.
+- **GitHub Actions:** ciągła integracja (CI) przy każdym Pull Requeście.
 
 ---
 
@@ -300,10 +305,10 @@ Repozytorium zorganizowane jest jako monorepo w architekturze **Feature-Based**:
 lappka-okazji/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                     # Pipeline CI (format:check, typecheck)
+│       ├── ci.yml                     # Pipeline kontroli jakości w CI
 │       └── branch-protection.yml      # Weryfikacja przepływu gałęzi w PR
 ├── .husky/
-│   └── pre-commit                     # Hook gita (lint-staged, git diff, typecheck)
+│   └── pre-commit                     # Hook gita z kontrolą jakości kodu
 ├── supabase/
 │   └── config.toml                    # Konfiguracja lokalnego środowiska Supabase
 ├── apps/
@@ -352,8 +357,9 @@ lappka-okazji/
 │       │       └── index.ts
 │       ├── .env.example               # Wzorzec zmiennych środowiskowych
 │       ├── app.json                   # Konfiguracja Expo (uprawnienia, ikony, schemat)
+│       ├── eslint.config.js           # Konfiguracja ESLint
 │       ├── package.json               # Zależności aplikacji mobilnej
-│       └── tsconfig.json              # Konfiguracja TypeScript dla aplikacji mobilnej
+│       └── tsconfig.json              # Konfiguracja TypeScript
 ├── package.json                       # Konfiguracja główna monorepo
 ├── tsconfig.json                      # Bazowa konfiguracja TypeScript
 ├── .prettierrc                        # Reguły formatowania kodu
@@ -385,8 +391,8 @@ lappka-okazji/
 Przed przystąpieniem do uruchomienia projektu upewnij się, że Twoje środowisko
 spełnia poniższe wymagania:
 
-- **Node.js:** wersja **>= 24.0.0** (sprawdź: `node -v`).
-- **npm:** wersja **>= 10.0.0** (sprawdź: `npm -v`).
+- **Node.js i npm:** wersje minimalne zdefiniowane w `engines` w `package.json`
+  (sprawdź: `node -v` i `npm -v`).
 - **Urządzenie mobilne do testów:**
   - Smartfon z systemem **Android** (rekomendowany) z zainstalowaną aplikacją
     **Expo Go** ze sklepu Google Play.
@@ -482,19 +488,19 @@ npm run mobile:web
 
 Wszystkie polecenia należy uruchamiać z głównego katalogu repozytorium:
 
-| Polecenie                 | Opis działania                                                      |
-| ------------------------- | ------------------------------------------------------------------- |
-| `npm run mobile`          | Uruchamia serwer Expo Metro dla aplikacji mobilnej (`apps/mobile`). |
-| `npm run mobile:web`      | Uruchamia aplikację mobilną w trybie Web w przeglądarce.            |
-| `npm run mobile:android`  | Uruchamia aplikację na podłączonym urządzeniu/emulatorze Android.   |
-| `npm run mobile:ios`      | Uruchamia aplikację na symulatorze iOS (wymaga środowiska macOS).   |
-| `npm run format:check`    | Sprawdza poprawność formatowania kodu za pomocą Prettier.           |
-| `npm run format`          | Automatycznie formatuje wszystkie pliki w repozytorium.             |
-| `npm run typecheck`       | Wykonuje statyczną kontrolę typów TypeScript (`tsc --noEmit`).      |
-| `npm run supabase:start`  | Uruchamia lokalne kontenery Supabase (wymaga Dockera).              |
-| `npm run supabase:stop`   | Zatrzymuje kontenery lokalnego Supabase.                            |
-| `npm run supabase:status` | Wyświetla status lokalnych usług Supabase oraz klucze API.          |
-| `npm run supabase:reset`  | Resetuje stan lokalnej bazy danych.                                 |
+Pełna, aktualna lista skryptów jest w `package.json` (głównym i w
+`apps/mobile`). Najczęściej używane:
+
+| Polecenie                | Opis działania                                                 |
+| ------------------------ | -------------------------------------------------------------- |
+| `npm run mobile`         | Uruchamia aplikację mobilną (Expo).                            |
+| `npm run mobile:web`     | Uruchamia aplikację w przeglądarce.                            |
+| `npm run format`         | Formatuje kod Prettierem.                                      |
+| `npm run format:check`   | Sprawdza formatowanie.                                         |
+| `npm run lint`           | Uruchamia ESLint.                                              |
+| `npm run typecheck`      | Sprawdza typy TypeScript.                                      |
+| `npm run supabase:start` | Uruchamia lokalne usługi Supabase (wymaga Dockera).            |
+| `npm run db:types`       | Regeneruje wygenerowane typy bazy danych z lokalnego Supabase. |
 
 ---
 
@@ -585,8 +591,9 @@ Projekt jest przystosowany do pracy w trybie offline / mock-first:
 
 ### 8.5. Kontrola jakości kodu
 
-- **Formatowanie kodu (Prettier):** Przed commitem uruchom `npm run format`.
-- **Weryfikacja typów:** Przed zakończeniem pracy uruchom `npm run typecheck`.
+- Uruchom skrypty kontroli jakości zdefiniowane w `package.json` (m.in.
+  `npm run format`, `npm run lint` i `npm run typecheck`) przed zakończeniem
+  pracy. Te same sprawdzenia wykonuje hook gitowy oraz CI.
 - **Uwaga na zakończenia linii na systemie Windows:** Jeśli pracujesz na
   systemie Windows z opcją `core.autocrlf=true`, upewnij się, że Prettier nie
   zgłasza błędów zakończeń linii CRLF/LF. W razie wątpliwości uruchom
@@ -656,9 +663,7 @@ Przykłady poprawnych commitów:
 
 Przed scaleniem Pull Requesta do gałęzi `develop` wymagane jest:
 
-1. Pomyślne przejście automatycznych testów GitHub Actions (`CI`):
-   - Weryfikacja formatowania Prettier (`npm run format:check`),
-   - Weryfikacja statycznego typowania TypeScript (`npm run typecheck`).
+1. Pomyślne przejście kontroli jakości w GitHub Actions (`CI`).
 2. Zawarcie identyfikatora zadania Jira w tytule PR (np.
    `feat(KAN-14): submit deal form`).
 3. Wyraźne wyszczególnienie w opisie PR zmian dotykających plików
