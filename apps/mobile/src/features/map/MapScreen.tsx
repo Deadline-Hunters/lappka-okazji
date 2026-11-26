@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Linking, StyleSheet, Text, View } from "react-native";
 
@@ -14,6 +14,7 @@ import {
   quickCategoryOptions,
   type CategoryFilter,
 } from "@/features/deals/categories";
+import { useDealsInteraction } from "@/features/deals/deals-interaction";
 import { MOCK_DEALS } from "@/features/deals/mockDeals";
 import { matchesDealSearch } from "@/features/deals/search";
 import { useCategoryFilter } from "@/features/deals/useCategoryFilter";
@@ -65,15 +66,27 @@ export function MapScreen() {
       id: (previous?.id ?? 0) + 1,
     }));
   }, []);
+  const { dealId: focusedDealIdParam, focusNonce } = useLocalSearchParams<{
+    dealId?: string | string[];
+    focusNonce?: string | string[];
+  }>();
+  const focusedDealId = Array.isArray(focusedDealIdParam)
+    ? focusedDealIdParam[0]
+    : focusedDealIdParam;
+  const resolvedFocusNonce = Array.isArray(focusNonce)
+    ? focusNonce[0]
+    : focusNonce;
+
   const { location, status, refresh } = useUserLocation();
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const { category, setCategory, isDefault, favorites, hasFavorites } =
     useCategoryFilter();
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [votes, setVotes] = useState<Record<string, Vote>>({});
+  const { votes, toggleVote } = useDealsInteraction();
   const requireAccount = useRequireAccount();
   const hasCenteredOnUser = useRef(false);
+  const lastHandledFocusKey = useRef<string | null>(null);
 
   const deals = MOCK_DEALS;
   const visibleDeals = useMemo(
@@ -135,6 +148,39 @@ export function MapScreen() {
     [visibleDeals],
   );
 
+  // Focus and select a deal when opened from another screen (e.g. "Pokaż na mapie" in DealDetailsScreen).
+  useEffect(() => {
+    if (!focusedDealId) return;
+
+    const focusKey = `${focusedDealId}:${resolvedFocusNonce ?? ""}`;
+    if (lastHandledFocusKey.current === focusKey) return;
+
+    const targetDeal = deals.find((item) => item.id === focusedDealId);
+    if (!targetDeal) return;
+
+    lastHandledFocusKey.current = focusKey;
+    hasCenteredOnUser.current = true;
+
+    if (!matchesCategory(targetDeal, category, favorites)) {
+      setCategory("all");
+    }
+    if (!matchesDealSearch(targetDeal, query)) {
+      setQuery("");
+    }
+
+    setSelectedDealId(targetDeal.id);
+    flyTo(targetDeal.location, USER_ZOOM);
+  }, [
+    focusedDealId,
+    resolvedFocusNonce,
+    deals,
+    category,
+    favorites,
+    query,
+    setCategory,
+    flyTo,
+  ]);
+
   // Center the map on the user once their position is first known.
   useEffect(() => {
     if (location && !hasCenteredOnUser.current) {
@@ -191,17 +237,9 @@ export function MapScreen() {
       if (!requireAccount()) {
         return;
       }
-      setVotes((previous) => {
-        const next = { ...previous };
-        if (previous[dealId] === vote) {
-          delete next[dealId];
-        } else {
-          next[dealId] = vote;
-        }
-        return next;
-      });
+      toggleVote(dealId, vote);
     },
-    [requireAccount],
+    [requireAccount, toggleVote],
   );
 
   const insets = useSafeAreaInsets();
@@ -289,6 +327,12 @@ export function MapScreen() {
               vote={votes[selectedDeal.id] ?? null}
               onVote={(vote) => handleVote(selectedDeal.id, vote)}
               onClose={handleMapPress}
+              onPress={() =>
+                router.push({
+                  pathname: "/deals/[id]",
+                  params: { id: selectedDeal.id },
+                })
+              }
             />
           </View>
         ) : null}

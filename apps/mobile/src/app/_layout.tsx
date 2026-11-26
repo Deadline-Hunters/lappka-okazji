@@ -5,6 +5,7 @@ import { LogBox } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
+import { DealsInteractionProvider } from "@/features/deals/deals-interaction";
 import { supabase } from "@/lib/supabase";
 import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
 import { PreferencesProvider } from "@/features/preferences/PreferencesProvider";
@@ -113,12 +114,15 @@ function RootNavigator() {
         exitGuestMode,
       }}
     >
-      <StatusBar style="dark" />
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
-        <Stack.Screen name="add-deal" options={{ headerShown: false }} />
-      </Stack>
+      <DealsInteractionProvider>
+        <StatusBar style="dark" />
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+          <Stack.Screen name="add-deal" options={{ headerShown: false }} />
+          <Stack.Screen name="deals/[id]" options={{ headerShown: false }} />
+        </Stack>
+      </DealsInteractionProvider>
     </AuthSessionContext.Provider>
   );
 }

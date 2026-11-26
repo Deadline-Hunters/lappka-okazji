@@ -12,6 +12,7 @@ import { colors, spacing } from "@/theme";
 
 import { DealCard } from "./components/DealCard";
 import { DealsLocationBanner } from "./components/DealsLocationBanner";
+import { useDealsInteraction } from "./deals-interaction";
 import { MOCK_DEALS } from "./mockDeals";
 import { matchesDealSearch } from "./search";
 import { DEAL_SORT_OPTIONS, type Deal, type DealSortOption } from "./types";
@@ -24,9 +25,7 @@ export function DealsScreen() {
   const [sortBy, setSortBy] = useState<DealSortOption>("closest");
   const [refreshing, setRefreshing] = useState(false);
   const [deals] = useState<Deal[]>(MOCK_DEALS);
-  const [bookmarkedDealIds, setBookmarkedDealIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const { bookmarkedIds, toggleBookmark, votes } = useDealsInteraction();
 
   const referenceLocation = location ?? DEFAULT_CENTER;
 
@@ -61,14 +60,14 @@ export function DealsScreen() {
       }
 
       if (sortBy === "bookmarked") {
-        const isA = bookmarkedDealIds.has(a.id) ? 1 : 0;
-        const isB = bookmarkedDealIds.has(b.id) ? 1 : 0;
+        const isA = bookmarkedIds.has(a.id) ? 1 : 0;
+        const isB = bookmarkedIds.has(b.id) ? 1 : 0;
         return isB - isA;
       }
 
       return 0;
     });
-  }, [deals, searchQuery, sortBy, referenceLocation, bookmarkedDealIds]);
+  }, [deals, searchQuery, sortBy, referenceLocation, bookmarkedIds]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -80,27 +79,11 @@ export function DealsScreen() {
     if (!requireAccount()) {
       return;
     }
-    setBookmarkedDealIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(dealId)) {
-        next.delete(dealId);
-      } else {
-        next.add(dealId);
-      }
-      return next;
-    });
+    toggleBookmark(dealId);
   };
 
   const handleActionPress = (deal: Deal) => {
-    if (deal.couponCode) {
-      Alert.alert(
-        "Kod rabatowy",
-        `Twój kod rabatowy do ${deal.storeName}:\n\n${deal.couponCode}\n\nOkaż go sprzedawcy przy płatności.`,
-        [{ text: "Super, dzięki!" }],
-      );
-    } else {
-      Alert.alert("Okazja", `Otwarto szczegóły oferty: ${deal.title}`);
-    }
+    router.push({ pathname: "/deals/[id]", params: { id: deal.id } });
   };
 
   return (
@@ -134,7 +117,8 @@ export function DealsScreen() {
             <DealCard
               deal={item}
               userLocation={location}
-              isBookmarked={bookmarkedDealIds.has(item.id)}
+              userVote={votes[item.id] ?? null}
+              isBookmarked={bookmarkedIds.has(item.id)}
               onBookmarkToggle={handleBookmarkToggle}
               onPress={handleActionPress}
             />

@@ -73,6 +73,9 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   (`jedzenie`, `kawa`, …) are Polish.
 - **Errors:** log failures with `console.error` and useful context; don't show
   `Alert` popups for errors. Keep validation feedback inline in the UI.
+- **Database calls:** use the typed Supabase client (`createClient<Database>`
+  with `database.types.ts`) and let RPC/table results be inferred instead of
+  writing local row types or casts.
 - **Expo Go only.** The team tests with `npx expo start` and Expo Go on Android.
   Don't add native modules that Expo Go doesn't ship, because that would force a
   dev build on everyone. Raise it with the team first. No EAS builds; discuss

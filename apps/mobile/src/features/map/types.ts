@@ -1,3 +1,4 @@
+import type { DealVote } from "@/features/deals/types";
 import type { LatLng } from "@/lib/geo";
 
 export type MapMarker = {
@@ -11,7 +12,7 @@ export type MapMarker = {
 };
 
 // The user's answer to "is the deal still there?" - kept locally until voting is saved in the database (KAN-17).
-export type Vote = "up" | "down";
+export type Vote = DealVote;
 
 // Camera target passed as a prop - changing `id` triggers an animation to this point,
 // or, when `bounds` is set, to a view that fits the whole area.

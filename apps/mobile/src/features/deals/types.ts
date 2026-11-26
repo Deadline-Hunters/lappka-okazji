@@ -4,6 +4,8 @@ import type { LatLng } from "@/lib/geo";
 export type DealCategory =
   "jedzenie" | "kawa" | "moda" | "elektronika" | "rozrywka" | "uslugi" | "inne";
 
+export type DealVote = "up" | "down";
+
 export type DealSortOption =
   "closest" | "newest" | "biggest_discount" | "bookmarked";
 
