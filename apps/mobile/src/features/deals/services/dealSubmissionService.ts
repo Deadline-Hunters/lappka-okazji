@@ -87,13 +87,9 @@ export async function submitDeal(
       formData.customDate,
     );
 
-    const categoryId = formData.category;
-    if (!categoryId) {
-      throw new Error("Błąd zapisu okazji: nie wybrano kategorii.");
-    }
-
     const rpcParams = {
-      p_category_id: categoryId,
+      // validateAll() guarantees a category before submission.
+      p_category_id: formData.category!,
       p_title: formData.title.trim(),
       p_valid_until: validUntilDate.toISOString(),
       p_price: formData.price ?? 0,
