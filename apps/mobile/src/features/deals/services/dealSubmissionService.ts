@@ -87,18 +87,23 @@ export async function submitDeal(
       formData.customDate,
     );
 
+    const categoryId = formData.category;
+    if (!categoryId) {
+      throw new Error("Błąd zapisu okazji: nie wybrano kategorii.");
+    }
+
     const rpcParams = {
-      p_category_id: formData.category,
+      p_category_id: categoryId,
       p_title: formData.title.trim(),
       p_valid_until: validUntilDate.toISOString(),
       p_price: formData.price ?? 0,
-      p_location_id: formData.selectedStoreId || null,
-      p_location_name: formData.storeName.trim() || null,
-      p_location_address: formData.storeAddress.trim() || null,
-      p_location_latitude: formData.location?.latitude || null,
-      p_location_longitude: formData.location?.longitude || null,
-      p_description: formData.description.trim() || null,
-      p_image_url: publicImageUrl || null,
+      p_location_id: formData.selectedStoreId || undefined,
+      p_location_name: formData.storeName.trim() || undefined,
+      p_location_address: formData.storeAddress.trim() || undefined,
+      p_location_latitude: formData.location?.latitude,
+      p_location_longitude: formData.location?.longitude,
+      p_description: formData.description.trim() || undefined,
+      p_image_url: publicImageUrl,
     };
 
     const { data: dealId, error } = await supabase.rpc(

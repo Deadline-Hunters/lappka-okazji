@@ -171,8 +171,7 @@ zalogowanych użytkowników.
 - **Krok 2 (Lokalizacja):** Interaktywna mapa MapLibre (`DealsMap`) z
   możliwością ręcznego przesunięcia pinezki lub dotknięcia punktu na mapie,
   pobieranie lokalizacji GPS (`expo-location`), oraz lista pobliskich sklepów
-  wraz z odległością i adresem (funkcja RPC `locations_near` z fallbackiem do
-  danych lokalnych).
+  wraz z odległością i adresem (funkcja RPC `locations_near`).
 - **Krok 3 (Publikacja):** Wybór terminu ważności (Dzisiaj, Jutro, własna data),
   opcjonalna wskazówka (do 1000 znaków), podsumowanie wprowadzonych danych oraz
   publikacja.
