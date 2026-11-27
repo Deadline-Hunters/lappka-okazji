@@ -47,16 +47,35 @@ export function CouponsScreen() {
   const toastId = useRef(0);
   const backgroundedAt = useRef<number | null>(null);
 
+  const showToast = useCallback((message: string) => {
+    toastId.current += 1;
+    setToast({ id: toastId.current, message });
+  }, []);
+
+  const hideToast = useCallback(() => setToast(null), []);
+
+  // Returns false when the request failed, so refreshes can tell the user.
   const loadCoupons = useCallback(async () => {
     try {
       const nextCoupons = await fetchCoupons();
       setCoupons(nextCoupons);
       setError(false);
+      return true;
     } catch (error) {
       console.error("Failed to load coupons", error);
+      // The error state is the list's empty component, so the list is cleared to make it show.
+      setCoupons([]);
       setError(true);
+      return false;
     }
   }, []);
+
+  // Refreshes also show a toast, so the failure is noticed even if the user wasn't looking at the list.
+  const refreshCoupons = useCallback(async () => {
+    if (!(await loadCoupons())) {
+      showToast("Nie udało się odświeżyć kuponów");
+    }
+  }, [loadCoupons, showToast]);
 
   useEffect(() => {
     loadCoupons().finally(() => setIsLoading(false));
@@ -77,28 +96,21 @@ export function CouponsScreen() {
         leftAt !== null &&
         Date.now() - leftAt >= BACKGROUND_REFRESH_DELAY_MS
       ) {
-        loadCoupons();
+        void refreshCoupons();
       }
     });
 
     return () => subscription.remove();
-  }, [loadCoupons]);
+  }, [refreshCoupons]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await loadCoupons();
+      await refreshCoupons();
     } finally {
       setRefreshing(false);
     }
-  }, [loadCoupons]);
-
-  const showToast = useCallback((message: string) => {
-    toastId.current += 1;
-    setToast({ id: toastId.current, message });
-  }, []);
-
-  const hideToast = useCallback(() => setToast(null), []);
+  }, [refreshCoupons]);
 
   const filteredCoupons = useMemo(
     () =>
