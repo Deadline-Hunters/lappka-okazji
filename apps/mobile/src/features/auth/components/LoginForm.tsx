@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Alert, Pressable, Text } from "react-native";
-import { router } from "expo-router";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -33,7 +32,6 @@ export function LoginForm({ onConfirmEmail }: { onConfirmEmail: () => void }) {
         password,
       });
       if (error) throw error;
-      router.replace("/(tabs)");
     } catch (error) {
       Alert.alert(authTexts.alertTitles.loginFailed, authErrorMessage(error));
     } finally {

@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { router } from "expo-router";
 import { Alert } from "react-native";
 
 import { Button } from "@/components/Button";
@@ -53,7 +52,6 @@ export function RegisterForm({
       });
       if (error) throw error;
       if (data.session) {
-        router.replace("/(tabs)");
         return;
       }
 

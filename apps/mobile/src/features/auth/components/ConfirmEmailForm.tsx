@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { router } from "expo-router";
 import { Alert } from "react-native";
 
 import { Button } from "@/components/Button";
@@ -57,7 +56,6 @@ export function ConfirmEmailForm({
           type: "signup",
         });
         if (error) throw error;
-        router.replace("/(tabs)");
       } catch (error) {
         showError(authTexts.alertTitles.confirmEmailFailed, error);
       }

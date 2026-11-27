@@ -1,4 +1,3 @@
-import { useRouter } from "expo-router";
 import { RefreshControl, ScrollView, StyleSheet, Text } from "react-native";
 
 import { Button } from "@/components/Button";
@@ -73,16 +72,14 @@ function UserProfile() {
 }
 
 export function ProfileScreen() {
-  const { isGuest, exitGuestMode } = useAuthSession();
-  const router = useRouter();
+  const { session, openAuth } = useAuthSession();
 
-  if (!isGuest) {
+  if (session) {
     return <UserProfile />;
   }
 
-  const openAuth = (mode: "login" | "register") => {
-    exitGuestMode();
-    router.replace({ pathname: "/auth", params: { mode } });
+  const openProfileAuth = (mode: "login" | "register") => {
+    openAuth("/profile", mode);
   };
 
   return (
@@ -96,11 +93,11 @@ export function ProfileScreen() {
         title="Przeglądasz jako gość"
         message="Konto jest potrzebne, aby dodawać i potwierdzać okazje oraz zbierać Łappsy."
       />
-      <Button label="Zaloguj się" onPress={() => openAuth("login")} />
+      <Button label="Zaloguj się" onPress={() => openProfileAuth("login")} />
       <Button
         label="Załóż konto"
         variant="secondary"
-        onPress={() => openAuth("register")}
+        onPress={() => openProfileAuth("register")}
       />
     </ScrollView>
   );

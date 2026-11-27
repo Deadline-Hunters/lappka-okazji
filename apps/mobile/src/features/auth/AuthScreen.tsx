@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,14 +19,13 @@ import { AUTH_MODES, type AuthMode } from "./types";
 type AuthFlow = "auth" | "confirm";
 
 export function AuthScreen() {
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; returnTo?: string }>();
   const [mode, setMode] = useState<AuthMode>(
     params.mode === "register" ? "register" : "login",
   );
   const [flow, setFlow] = useState<AuthFlow>("auth");
   const [confirmationEmail, setConfirmationEmail] = useState("");
-  const { continueAsGuest } = useAuthSession();
-  const router = useRouter();
+  const { continueAsGuest, returnFromAuth } = useAuthSession();
 
   function renderFlow() {
     if (flow === "confirm") {
@@ -67,7 +66,7 @@ export function AuthScreen() {
           variant="tonal"
           onPress={() => {
             continueAsGuest();
-            router.replace("/(tabs)");
+            returnFromAuth(params.returnTo);
           }}
           style={authStyles.guestButton}
         />

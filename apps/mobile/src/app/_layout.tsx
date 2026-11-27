@@ -1,4 +1,11 @@
-import { Redirect, Stack, useRouter, useSegments } from "expo-router";
+import {
+  Redirect,
+  Stack,
+  useGlobalSearchParams,
+  usePathname,
+  useRouter,
+  useSegments,
+} from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState, LogBox, Platform } from "react-native";
@@ -10,6 +17,11 @@ import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
 import { supabase } from "@/lib/supabase";
 import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
+import {
+  createAuthReturnController,
+  getReturnPath,
+  type ReturnPath,
+} from "@/lib/auth-navigation";
 import { createTokenRefreshController } from "@/lib/token-refresh";
 import { PreferencesProvider } from "@/features/preferences/PreferencesProvider";
 
@@ -60,6 +72,25 @@ function RootNavigator() {
   const exitGuestMode = useCallback(() => setGuest(false), [setGuest]);
   const segments = useSegments();
   const router = useRouter();
+  const pathname = usePathname();
+  const { returnTo } = useGlobalSearchParams<{ returnTo?: string }>();
+  const [authReturn] = useState(createAuthReturnController);
+  const openAuth = useCallback(
+    (returnPath: ReturnPath, mode?: "login" | "register") => {
+      authReturn.markOpened();
+      router.push({
+        pathname: "/auth",
+        params: { returnTo: returnPath, ...(mode ? { mode } : {}) },
+      });
+    },
+    [authReturn, router],
+  );
+  const returnFromAuth = useCallback(
+    (returnPath: unknown) => {
+      authReturn.returnFromAuth(router, returnPath);
+    },
+    [authReturn, router],
+  );
 
   useEffect(() => {
     if (Platform.OS === "web") return;
@@ -133,13 +164,21 @@ function RootNavigator() {
 
   const isAuthRoute = segments[0] === "auth";
 
-  // The auth listener commits `session` after signInWithPassword resolves, so navigate
-  // from here once it is set instead of racing the state update in the sign-in caller.
   useEffect(() => {
-    if (session && isAuthRoute) {
-      router.replace("/(tabs)");
+    if (!isAuthRoute) {
+      authReturn.clear();
+    } else if (session && !isLoading && !loadError) {
+      returnFromAuth(returnTo);
     }
-  }, [session, isAuthRoute, router]);
+  }, [
+    session,
+    isAuthRoute,
+    isLoading,
+    loadError,
+    returnTo,
+    returnFromAuth,
+    authReturn,
+  ]);
 
   if (isLoading) {
     return <LoadingState message="Ładowanie sesji..." fill />;
@@ -162,7 +201,14 @@ function RootNavigator() {
   }
 
   if (!session && !isGuest && !isAuthRoute) {
-    return <Redirect href="/auth" />;
+    return (
+      <Redirect
+        href={{
+          pathname: "/auth",
+          params: { returnTo: getReturnPath(pathname) },
+        }}
+      />
+    );
   }
 
   return (
@@ -172,6 +218,8 @@ function RootNavigator() {
         isGuest,
         continueAsGuest,
         exitGuestMode,
+        openAuth,
+        returnFromAuth,
       }}
     >
       <DealsInteractionProvider>

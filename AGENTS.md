@@ -127,7 +127,7 @@ Helpers:
 - **Dev login shortcut:** the auth screen has a `[DEV] Zaloguj` button that signs in as the first seeded user (`kamil.seed@example.com` / `password`). It needs a running local Supabase (`npm run supabase:reset` loads the seed).
 - **Auth session storage:** on Android and iOS, the Supabase session is encrypted with AES-GCM in AsyncStorage, with the key in SecureStore. Existing plaintext sessions are migrated on first access; do not remove the old value before the encrypted write succeeds. SecureStore is unavailable on web, so the existing browser storage is retained there. Token auto-refresh follows the native app's foreground state.
 - **Email confirmation:** local email signups require a six-digit confirmation code. View messages in the Mailpit UI at `http://127.0.0.1:54324`. After changing `supabase/config.toml`, restart Supabase with `npm run supabase:stop` and `npm run supabase:start`; a database reset is not needed. The seeded users are already confirmed.
-- **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an account (`isGuest` in `useAuthSession()`). Wrap every action that needs an account (voting, bookmarking, adding deals) with `useRequireAccount()` from `@/lib/auth-session`.
+- **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an account (`isGuest` in `useAuthSession()`). Wrap every action that needs an account (voting, bookmarking, adding deals) with `useRequireAccount()` from `@/lib/auth-session`. An account action opens auth without discarding the guest's current screen; after sign-in or email confirmation, navigation returns there. Update the allowlist in `auth-navigation.ts` when adding routes that can be restored after sign-in.
 
 ## Navigation & routing
 
