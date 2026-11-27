@@ -18,7 +18,7 @@ import { colors, spacing } from "@/theme";
 
 import { CouponCard } from "./components/CouponCard";
 import { CouponQrModal } from "./components/CouponQrModal";
-import { fetchCoupons } from "./mockCoupons";
+import { fetchCoupons } from "./services/couponService";
 import {
   COUPON_FILTERS,
   isEndingSoon,
@@ -36,6 +36,7 @@ type ToastState = {
 export function CouponsScreen() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<CouponFilter>("all");
@@ -46,10 +47,35 @@ export function CouponsScreen() {
   const toastId = useRef(0);
   const backgroundedAt = useRef<number | null>(null);
 
-  const loadCoupons = useCallback(async () => {
-    const nextCoupons = await fetchCoupons();
-    setCoupons(nextCoupons);
+  const showToast = useCallback((message: string) => {
+    toastId.current += 1;
+    setToast({ id: toastId.current, message });
   }, []);
+
+  const hideToast = useCallback(() => setToast(null), []);
+
+  // Returns false when the request failed, so refreshes can tell the user.
+  const loadCoupons = useCallback(async () => {
+    try {
+      const nextCoupons = await fetchCoupons();
+      setCoupons(nextCoupons);
+      setError(false);
+      return true;
+    } catch (error) {
+      console.error("Failed to load coupons", error);
+      // The error state is the list's empty component, so the list is cleared to make it show.
+      setCoupons([]);
+      setError(true);
+      return false;
+    }
+  }, []);
+
+  // Refreshes also show a toast, so the failure is noticed even if the user wasn't looking at the list.
+  const refreshCoupons = useCallback(async () => {
+    if (!(await loadCoupons())) {
+      showToast("Nie udało się odświeżyć kuponów");
+    }
+  }, [loadCoupons, showToast]);
 
   useEffect(() => {
     loadCoupons().finally(() => setIsLoading(false));
@@ -70,28 +96,21 @@ export function CouponsScreen() {
         leftAt !== null &&
         Date.now() - leftAt >= BACKGROUND_REFRESH_DELAY_MS
       ) {
-        loadCoupons();
+        void refreshCoupons();
       }
     });
 
     return () => subscription.remove();
-  }, [loadCoupons]);
+  }, [refreshCoupons]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await loadCoupons();
+      await refreshCoupons();
     } finally {
       setRefreshing(false);
     }
-  }, [loadCoupons]);
-
-  const showToast = useCallback((message: string) => {
-    toastId.current += 1;
-    setToast({ id: toastId.current, message });
-  }, []);
-
-  const hideToast = useCallback(() => setToast(null), []);
+  }, [refreshCoupons]);
 
   const filteredCoupons = useMemo(
     () =>
@@ -179,7 +198,15 @@ export function CouponsScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? undefined : (
+          error ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              tone="danger"
+              title="Nie udało się pobrać kuponów"
+              message="Sprawdź połączenie z internetem i spróbuj ponownie."
+              action={{ label: "Spróbuj ponownie", onPress: loadCoupons }}
+            />
+          ) : isLoading ? undefined : (
             <EmptyState
               icon="ticket-outline"
               title="Brak kuponów"
