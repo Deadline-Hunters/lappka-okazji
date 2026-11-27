@@ -57,11 +57,9 @@ export const authStyles = StyleSheet.create({
   },
   modeSwitch: { marginBottom: spacing.md },
   formCard: { gap: spacing.sm, borderRadius: radius.lg },
-  optionsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: spacing.xs,
+  confirmEmailLink: {
+    alignSelf: "flex-end",
+    paddingVertical: spacing.xs,
   },
   link: { fontSize: 13, fontWeight: "700", color: colors.primaryDark },
   submitButton: { marginTop: spacing.sm },

@@ -211,6 +211,11 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
 - **Dev login shortcut:** the auth screen has a `[DEV] Zaloguj` button that
   signs in as the first seeded user (`kamil.seed@example.com` / `password`). It
   needs a running local Supabase (`npm run supabase:reset` loads the seed).
+- **Email confirmation:** local email signups require a six-digit confirmation
+  code. View messages in the Mailpit UI at `http://127.0.0.1:54324`. After
+  changing `supabase/config.toml`, restart Supabase with `npm run supabase:stop`
+  and `npm run supabase:start`; a database reset is not needed. The seeded users
+  are already confirmed.
 - **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an
   account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
   account (voting, bookmarking, adding deals) with `useRequireAccount()` from
