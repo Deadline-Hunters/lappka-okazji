@@ -10,6 +10,7 @@ import { Platform } from "react-native";
 
 import { createEncryptedSessionStorage } from "./encrypted-session-storage";
 import { decodeSession, encodeSession } from "./session-encoding";
+import { createMarkedSessionStorage, SESSION_OWNER_KEY } from "./logout";
 
 const secureStorage = {
   getItem: SecureStore.getItemAsync,
@@ -41,5 +42,10 @@ const encryptedStorage = createEncryptedSessionStorage(
 );
 
 // SecureStore is unavailable on web; retain the existing browser storage.
-export const sessionStorage =
+const underlyingStorage =
   Platform.OS === "web" ? AsyncStorage : encryptedStorage;
+
+export const sessionStorage = createMarkedSessionStorage(
+  underlyingStorage,
+  () => AsyncStorage.setItem(SESSION_OWNER_KEY, "1"),
+);

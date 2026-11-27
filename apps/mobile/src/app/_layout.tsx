@@ -9,7 +9,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState, LogBox, Platform } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import { DealsInteractionProvider } from "@/features/deals/deals-interaction";
@@ -23,7 +23,16 @@ import {
   type ReturnPath,
 } from "@/lib/auth-navigation";
 import { createTokenRefreshController } from "@/lib/token-refresh";
+import {
+  appStorageKeys,
+  clearApplicationSession,
+  clearLocalApplicationData,
+  LOGOUT_PENDING_KEY,
+  SESSION_OWNER_KEY,
+  withoutCleanupMarkers,
+} from "@/lib/logout";
 import { PreferencesProvider } from "@/features/preferences/PreferencesProvider";
+import { preferencesService } from "@/features/preferences/services/preferencesService";
 
 // Expo SDK 58 bug (expo/build/dom/webview-wrapper.js): on a DOM component's first render it sends
 // props to the WebView before the native view exists and doesn't catch the rejected promise.
@@ -45,11 +54,7 @@ const tokenRefresh = createTokenRefreshController(
 );
 
 export default function RootLayout() {
-  return (
-    <PreferencesProvider>
-      <RootNavigator />
-    </PreferencesProvider>
-  );
+  return <RootNavigator />;
 }
 
 function RootNavigator() {
@@ -58,6 +63,11 @@ function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [logoutState, setLogoutState] = useState<
+    "idle" | "running" | "failed" | "server-warning" | "complete"
+  >("idle");
+  const logoutRunning = useRef(false);
+  const serverSignOutFailed = useRef(false);
 
   const setGuest = useCallback((value: boolean) => {
     setIsGuest(value);
@@ -75,6 +85,58 @@ function RootNavigator() {
   const pathname = usePathname();
   const { returnTo } = useGlobalSearchParams<{ returnTo?: string }>();
   const [authReturn] = useState(createAuthReturnController);
+  const cleanupLocalData = useCallback(() => {
+    return clearLocalApplicationData({
+      waitForWrites: () => preferencesService.waitForPendingWrites(),
+      clearStorage: async () => {
+        const keys = await AsyncStorage.getAllKeys();
+        await AsyncStorage.multiRemove(
+          withoutCleanupMarkers(
+            Platform.OS === "web" ? appStorageKeys(keys) : keys,
+          ),
+        );
+      },
+      clearMarkers: () =>
+        AsyncStorage.multiRemove([SESSION_OWNER_KEY, LOGOUT_PENDING_KEY]),
+    });
+  }, []);
+  const startCleanup = useCallback(
+    (revokeSession: boolean) => {
+      if (logoutRunning.current) return;
+      logoutRunning.current = true;
+      setLogoutState("running");
+      const cleanup = revokeSession
+        ? clearApplicationSession({
+            markPending: () => AsyncStorage.setItem(LOGOUT_PENDING_KEY, "1"),
+            signOut: async () => {
+              const result = await supabase.auth.signOut();
+              serverSignOutFailed.current ||= Boolean(result.error);
+              return result;
+            },
+            getSession: () => supabase.auth.getSession(),
+            clearLocalData: cleanupLocalData,
+          })
+        : cleanupLocalData();
+      void cleanup
+        .then(() => {
+          setSession(null);
+          setIsGuest(false);
+          authReturn.clear();
+          setLogoutState(
+            serverSignOutFailed.current ? "server-warning" : "complete",
+          );
+        })
+        .catch(() => {
+          console.error("Unable to sign out or clear local application data");
+          setLogoutState("failed");
+        })
+        .finally(() => {
+          logoutRunning.current = false;
+        });
+    },
+    [authReturn, cleanupLocalData],
+  );
+  const signOut = useCallback(() => startCleanup(true), [startCleanup]);
   const openAuth = useCallback(
     (returnPath: ReturnPath, mode?: "login" | "register") => {
       authReturn.markOpened();
@@ -113,18 +175,40 @@ function RootNavigator() {
     setIsLoading(true);
     setLoadError(false);
 
-    // Hydrate the guest flag together with the session so the auth screen never flashes.
+    // Check unfinished cleanup before asking Supabase to restore a session.
     Promise.all([
-      supabase.auth.getSession(),
       AsyncStorage.getItem(GUEST_STORAGE_KEY),
+      AsyncStorage.getItem(SESSION_OWNER_KEY),
+      AsyncStorage.getItem(LOGOUT_PENDING_KEY),
     ])
-      .then(([{ data, error }, guestFlag]) => {
+      .then(async ([guestFlag, owner, pending]) => {
+        if (!isMounted) return;
+        if (pending === "1") {
+          startCleanup(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase.auth.getSession();
         if (error) {
           throw error;
         }
 
         if (isMounted) {
           if (!authChanged) {
+            if (owner === "1" && !data.session) {
+              startCleanup(false);
+              setIsLoading(false);
+              return;
+            }
+            if (data.session) {
+              await AsyncStorage.setItem(SESSION_OWNER_KEY, "1");
+              if (!isMounted) return;
+              if (authChanged) {
+                setIsLoading(false);
+                return;
+              }
+            }
             setSession(data.session);
             setIsGuest(guestFlag === "1" && !data.session);
           }
@@ -146,6 +230,10 @@ function RootNavigator() {
         if (event === "INITIAL_SESSION") return;
         authChanged = true;
         setSession(session);
+        if (event === "SIGNED_OUT" && !logoutRunning.current) {
+          setIsGuest(false);
+          startCleanup(false);
+        }
         if (session) {
           // A real sign-in replaces guest mode.
           setIsGuest(false);
@@ -160,14 +248,18 @@ function RootNavigator() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [loadAttempt]);
+  }, [loadAttempt, startCleanup]);
 
   const isAuthRoute = segments[0] === "auth";
 
   useEffect(() => {
+    if (logoutState === "complete" && isAuthRoute) {
+      serverSignOutFailed.current = false;
+      setLogoutState("idle");
+    }
     if (!isAuthRoute) {
       authReturn.clear();
-    } else if (session && !isLoading && !loadError) {
+    } else if (session && !isLoading && !loadError && logoutState === "idle") {
       returnFromAuth(returnTo);
     }
   }, [
@@ -175,6 +267,7 @@ function RootNavigator() {
     isAuthRoute,
     isLoading,
     loadError,
+    logoutState,
     returnTo,
     returnFromAuth,
     authReturn,
@@ -182,6 +275,39 @@ function RootNavigator() {
 
   if (isLoading) {
     return <LoadingState message="Ładowanie sesji..." fill />;
+  }
+
+  if (logoutState === "running") {
+    return <LoadingState message="Wylogowywanie..." fill />;
+  }
+
+  if (logoutState === "failed") {
+    return (
+      <EmptyState
+        fill
+        tone="danger"
+        icon="alert-circle-outline"
+        title="Nie udało się zakończyć wylogowania"
+        message="Nie udało się wyczyścić sesji lub danych lokalnych. Sprawdź połączenie i spróbuj ponownie."
+        action={{ label: "Spróbuj ponownie", onPress: signOut }}
+      />
+    );
+  }
+
+  if (logoutState === "server-warning") {
+    return (
+      <EmptyState
+        fill
+        tone="danger"
+        icon="alert-circle-outline"
+        title="Wylogowano na tym urządzeniu"
+        message="Nie udało się potwierdzić wylogowania na serwerze. Sesje na serwerze mogą być nadal aktywne."
+        action={{
+          label: "Przejdź do logowania",
+          onPress: () => setLogoutState("complete"),
+        }}
+      />
+    );
   }
 
   if (loadError) {
@@ -201,6 +327,9 @@ function RootNavigator() {
   }
 
   if (!session && !isGuest && !isAuthRoute) {
+    if (logoutState === "complete") {
+      return <Redirect href="/auth" />;
+    }
     return (
       <Redirect
         href={{
@@ -218,18 +347,23 @@ function RootNavigator() {
         isGuest,
         continueAsGuest,
         exitGuestMode,
+        signOut,
         openAuth,
         returnFromAuth,
       }}
     >
-      <DealsInteractionProvider>
-        <StatusBar style="dark" />
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen name="deals/[id]" options={{ headerShown: false }} />
-        </Stack>
-      </DealsInteractionProvider>
+      <PreferencesProvider>
+        <DealsInteractionProvider>
+          <StatusBar style="dark" />
+          <Stack>
+            <Stack.Protected guard={Boolean(session) || isGuest}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="deals/[id]" options={{ headerShown: false }} />
+            </Stack.Protected>
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
+          </Stack>
+        </DealsInteractionProvider>
+      </PreferencesProvider>
     </AuthSessionContext.Provider>
   );
 }

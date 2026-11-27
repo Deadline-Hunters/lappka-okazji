@@ -11,6 +11,7 @@ type AuthSessionContextValue = {
   isGuest: boolean;
   continueAsGuest: () => void;
   exitGuestMode: () => void;
+  signOut: () => void;
   openAuth: (returnTo: ReturnPath, mode?: "login" | "register") => void;
   returnFromAuth: (returnTo: unknown) => void;
 };
