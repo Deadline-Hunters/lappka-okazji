@@ -12,10 +12,12 @@ project **KAN**, and the UI is designed in Figma.
 
 ## Stack
 
-- Monorepo with npm workspaces (`apps/*`, `packages/*`). Node >= 24, npm 10. The
-  root `package-lock.json` is the real lock file.
-- `apps/mobile`: **Expo SDK 58**, React Native 0.88, React 19.3, **Expo Router**
-  with typed routes, TypeScript `strict`, `@/*` → `apps/mobile/src/*`.
+- Monorepo with npm workspaces (`apps/*`, `packages/*`). Required Node/npm
+  versions are in `package.json` `engines`. The root `package-lock.json` is the
+  real lock file.
+- `apps/mobile`: **Expo SDK**, React Native, React, **Expo Router** with typed
+  routes, TypeScript `strict`, `@/*` → `apps/mobile/src/*`. Versions live in
+  `apps/mobile/package.json`.
 - Backend: **Supabase, run locally** (Docker + Supabase CLI,
   `supabase/config.toml`). Data, auth users and storage don't sync between
   developers, so migrations and `seed.sql` must be committed. The schema lives
@@ -29,23 +31,24 @@ project **KAN**, and the UI is designed in Figma.
 Expo ships breaking changes every SDK release. Before writing code that touches
 an Expo or React Native API:
 
-1. Check the `expo` version in `apps/mobile/package.json` (currently 58).
-2. Read the matching docs: <https://docs.expo.dev/versions/v58.0.0/>
-3. For anything else, start from <https://docs.expo.dev/llms.txt> and never
+1. Check the installed `expo` version in `apps/mobile/package.json`.
+2. Read the docs for that SDK version (start from
+   <https://docs.expo.dev/llms.txt> and follow the version link) and never
    answer from memory.
 
 ## Commands (from the repo root)
 
 ```bash
-npm install                 # first time; also installs the husky pre-commit hook
-npm run mobile              # expo start in apps/mobile, then scan the QR code with Expo Go (Android)
+npm install                 # first time; also installs the git hooks
+npm run mobile              # Expo server; open with Expo Go (Android)
 npm run mobile:web          # quick check in a browser
-npm run format              # Prettier --write
-npm run format:check        # Prettier --check (CI)
-npm run typecheck           # tsc --noEmit for apps/mobile (CI)
+npm run format              # format code
+npm run format:check        # check formatting
+npm run lint                # run ESLint
+npm run typecheck           # check TypeScript types
 npm run supabase:start      # local Supabase (needs Docker)
 npm run db:types            # regenerate database.types.ts from local Supabase
-npm run db:types:check      # verify the committed types are current (CI)
+npm run db:types:check      # verify committed types are current
 cd apps/mobile && npx expo install <pkg>    # add deps, never a bare `npm i`
 cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
 ```
@@ -54,15 +57,12 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   hand. After changing a migration, run `npm run supabase:start` then
   `npm run db:types`, and commit the regenerated file.
 - `npm run db:types:check` regenerates the types in memory and exits non-zero if
-  the committed file is stale; it never writes to the file. CI runs it in
-  `.github/workflows/db-types.yml`, but only when the database or the types file
-  changes.
-- There is no lint or test step. CI (`.github/workflows/ci.yml`) runs `npm ci`,
-  then `format:check`, then `typecheck` on every PR and on pushes to `develop`,
-  `test` and `main`.
-- The pre-commit hook runs `lint-staged` (Prettier check on the staged files),
-  then `git diff --check --cached`, then `typecheck`. Don't skip it.
-- Run `npm run format` and `npm run typecheck` before calling a task done.
+  the committed file is stale; it never writes to the file. CI runs it when the
+  database or the types file changes.
+- The scripts in `package.json` are the source of truth for quality checks. CI
+  (`.github/workflows/ci.yml`) and the git hook (`.husky/pre-commit`) run them,
+  so don't skip them.
+- Run the project's quality scripts before calling a task done.
 
 ## Rules
 
@@ -71,10 +71,15 @@ cd apps/mobile && npx expo install --check  # verify SDK-compatible versions
   everything the user sees: titles, labels, messages, `accessibilityLabel`s,
   permission strings and mock data. Legacy exception: the `DealCategory` keys
   (`jedzenie`, `kawa`, …) are Polish.
+- **Errors:** log failures with `console.error` and useful context; don't show
+  `Alert` popups for errors. Keep validation feedback inline in the UI.
+- **Database calls:** use the typed Supabase client (`createClient<Database>`
+  with `database.types.ts`) and let RPC/table results be inferred instead of
+  writing local row types or casts.
 - **Expo Go only.** The team tests with `npx expo start` and Expo Go on Android.
   Don't add native modules that Expo Go doesn't ship, because that would force a
-  dev build on everyone. Raise it with the team first. No EAS builds and no
-  CI/CD changes for now.
+  dev build on everyone. Raise it with the team first. No EAS builds; discuss
+  CI/CD changes before making them.
 - **Structure:**
   - A feature lives in `src/features/<feature>/` (screen, `components/`,
     `types.ts`, `mock*.ts`).
@@ -194,7 +199,7 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   Expo Go), `expo-maps` (Google only, no Expo Go), native MapLibre RN (needs a
   dev build), CARTO basemaps (needs a key).
 - `LogBox.ignoreLogs(["DomWebView.injectJavaScript"])` in the root layout works
-  around an SDK 58 bug. Leave it in.
+  around a known Expo DOM bug. Leave it in.
 
 ## Gotchas
 
@@ -208,9 +213,8 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   restart with `cd apps/mobile && npx expo start --clear`.
   `npm run mobile -- --clear` does not forward the flag.
 - **Expo Go can't connect:** turn off your VPN or try `npx expo start --tunnel`.
-- **Dev login shortcut:** the auth screen has a `[DEV] Zaloguj` button that
-  signs in as the first seeded user (`kamil.seed@example.com` / `password`). It
-  needs a running local Supabase (`npm run supabase:reset` loads the seed).
+- **Dev login shortcut:** the auth screen has a dev button that signs in as a
+  seeded user. It needs a running local Supabase with the seed loaded.
 - **Guest mode (KAN-63):** „Kontynuuj jako gość” lets people browse without an
   account (`isGuest` in `useAuthSession()`). Wrap every action that needs an
   account (voting, bookmarking, adding deals) with `useRequireAccount()` from
@@ -222,3 +226,34 @@ prices, `neutralDark` for selected chips, `surfaceMuted` for idle chips.
   there is a screen, and `_layout.tsx` files define navigators.
 - Import `Link`, `router` and `useLocalSearchParams` from `expo-router`.
 - Docs: <https://docs.expo.dev/router/introduction.md>
+
+## Deal submission form (`features/deals/form/`)
+
+- Route: `/add-deal` (`src/app/add-deal.tsx`). Guests can open the form, but
+  publishing requires an account and prompts them to sign in.
+- 3-step wizard:
+  - Step 1: photo (`expo-image-picker`), title, category (`CATEGORIES`),
+    optional price.
+  - Step 2: location on MapLibre DOM component (`DealsMap.tsx`), GPS detection,
+    draggable pin, store selection list (`storeLocationsService.ts` calling
+    `locations_near` RPC).
+  - Step 3: validity date, optional hint/description, complete summary card,
+    publication button.
+- Local profanity moderation (`features/deals/validation/profanity.ts`):
+  standalone Polish profanity matcher with Polish roots, leetspeak resolution,
+  diacritics normalization, and false-positive whitelisting (e.g. "sukienka",
+  "kuchnia").
+- Supabase Storage: bucket `deal-images` stores user photos under
+  `${userId}/${fileName}` with RLS policies restricting write access to the
+  authenticated owner. Cleanup of orphaned files is handled on RPC error.
+
+## Documentation maintenance
+
+Keep the root `README.md` accurate about features, setup, architecture and how
+to run the project. Update it in the same task when a change affects those
+things, and never describe mocks or plans as implemented.
+
+Don't duplicate volatile details in docs. Dependency versions, individual
+rule/config names, exact hook or CI step lists, and file inventories belong in
+`package.json`, the config files and the source — point to them instead of
+copying their contents, so routine commits don't require doc edits.
