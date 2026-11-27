@@ -3,7 +3,6 @@ import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Linking,
   Platform,
   Pressable,
@@ -21,6 +20,7 @@ import { IconButton } from "@/components/IconButton";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Toast } from "@/components/Toast";
 import { useUserLocation } from "@/features/map/useUserLocation";
+import { Alert } from "@/lib/alert";
 import { useRequireAccount } from "@/lib/auth-session";
 import { formatPrice } from "@/lib/format";
 import { colors, spacing } from "@/theme";

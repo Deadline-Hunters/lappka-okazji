@@ -358,7 +358,10 @@ function RootNavigator() {
           <Stack>
             <Stack.Protected guard={Boolean(session) || isGuest}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="deals/[id]" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="deals/[id]"
+                options={{ headerShown: false }}
+              />
             </Stack.Protected>
             <Stack.Screen name="auth" options={{ headerShown: false }} />
           </Stack>
