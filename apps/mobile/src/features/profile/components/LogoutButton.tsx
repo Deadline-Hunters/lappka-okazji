@@ -1,7 +1,8 @@
-import { Alert, Platform, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { Button } from "@/components/Button";
 import { useAuthSession } from "@/lib/auth-session";
+import { Alert } from "@/lib/alert";
 import { spacing } from "@/theme";
 
 export function LogoutButton() {
@@ -10,11 +11,6 @@ export function LogoutButton() {
   const handlePress = () => {
     const message =
       "Czy na pewno chcesz się wylogować? Lokalne dane aplikacji, w tym preferencje, zostaną usunięte.";
-    if (Platform.OS === "web") {
-      if (globalThis.confirm(message)) signOut();
-      return;
-    }
-
     Alert.alert(
       "Wylogowanie",
       message,

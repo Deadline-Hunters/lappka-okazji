@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 
 import { EmptyState } from "@/components/EmptyState";
 import { FilterChips } from "@/components/FilterChips";
@@ -16,6 +16,7 @@ import { MOCK_DEALS } from "./mockDeals";
 import { matchesDealSearch } from "./search";
 import { DEAL_SORT_OPTIONS, type Deal, type DealSortOption } from "./types";
 import { useRequireAccount } from "@/lib/auth-session";
+import { Alert } from "@/lib/alert";
 
 export function DealsScreen() {
   const requireAccount = useRequireAccount();

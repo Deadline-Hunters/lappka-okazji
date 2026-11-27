@@ -1,8 +1,8 @@
 import { usePathname } from "expo-router";
 import { createContext, useCallback, useContext } from "react";
-import { Alert } from "react-native";
 import type { Session } from "@supabase/supabase-js";
 
+import { Alert } from "@/lib/alert";
 import { getReturnPath, hasAccount, type ReturnPath } from "./auth-navigation";
 
 type AuthSessionContextValue = {

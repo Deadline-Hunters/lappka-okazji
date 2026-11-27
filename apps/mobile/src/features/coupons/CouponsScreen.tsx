@@ -1,7 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   AppState,
   FlatList,
   RefreshControl,
@@ -13,6 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { FilterChips } from "@/components/FilterChips";
 import { SearchBar } from "@/components/SearchBar";
 import { Toast } from "@/components/Toast";
+import { Alert } from "@/lib/alert";
 import { matchesQuery } from "@/lib/search";
 import { colors, spacing } from "@/theme";
 

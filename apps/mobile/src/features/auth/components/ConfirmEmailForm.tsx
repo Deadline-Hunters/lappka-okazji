@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
-import { Alert } from "react-native";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { TextField } from "@/components/TextField";
 import { supabase } from "@/lib/supabase";
+import { Alert } from "@/lib/alert";
 
 import { authErrorMessage } from "../authErrors";
 import { authStyles } from "../authStyles";
