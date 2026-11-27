@@ -9,6 +9,7 @@
   "scripts": {
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "lint": "npm run lint --workspace=@lappka-okazji/mobile",
     "prepare": "husky",
     "typecheck": "npm run typecheck --workspace=@lappka-okazji/mobile",
     "db:types": "node scripts/db-types.mjs",
