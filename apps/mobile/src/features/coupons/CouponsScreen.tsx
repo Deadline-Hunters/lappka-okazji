@@ -186,7 +186,7 @@ export function CouponsScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? undefined : error ? (
+          error ? (
             <EmptyState
               icon="cloud-offline-outline"
               tone="danger"
@@ -194,7 +194,7 @@ export function CouponsScreen() {
               message="Sprawdź połączenie z internetem i spróbuj ponownie."
               action={{ label: "Spróbuj ponownie", onPress: loadCoupons }}
             />
-          ) : (
+          ) : isLoading ? undefined : (
             <EmptyState
               icon="ticket-outline"
               title="Brak kuponów"
