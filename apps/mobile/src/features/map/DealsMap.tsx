@@ -194,6 +194,19 @@ export default function DealsMap({
     let cancelled = false;
     let created: maplibregl.Map | null = null;
 
+    // Links (e.g. attribution) open in the browser - navigating inside the WebView would replace the map.
+    // The listener sits on the map container, not on `document`: on web this component renders inline,
+    // and a document-level listener would also swallow Expo Router's tab links.
+    const container = containerRef.current;
+    function handleLinkClick(event: MouseEvent) {
+      const link = (event.target as Element | null)?.closest?.("a");
+      if (link && link.href.startsWith("http")) {
+        event.preventDefault();
+        void callbacks.current.onOpenUrl(link.href);
+      }
+    }
+    container?.addEventListener("click", handleLinkClick, true);
+
     loadMapLibre()
       .then((maplibre) => {
         if (cancelled || !containerRef.current) {
@@ -257,6 +270,7 @@ export default function DealsMap({
 
     return () => {
       cancelled = true;
+      container?.removeEventListener("click", handleLinkClick, true);
       created?.remove();
     };
     // The map is created once; the initial center and zoom only matter at startup.
