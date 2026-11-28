@@ -1,7 +1,9 @@
-import { useRouter } from "expo-router";
+import { usePathname } from "expo-router";
 import { createContext, useCallback, useContext } from "react";
-import { Alert } from "react-native";
 import type { Session } from "@supabase/supabase-js";
+
+import { Alert } from "@/lib/alert";
+import { getReturnPath, hasAccount, type ReturnPath } from "./auth-navigation";
 
 type AuthSessionContextValue = {
   session: Session | null;
@@ -9,6 +11,9 @@ type AuthSessionContextValue = {
   isGuest: boolean;
   continueAsGuest: () => void;
   exitGuestMode: () => void;
+  signOut: () => void;
+  openAuth: (returnTo: ReturnPath, mode?: "login" | "register") => void;
+  returnFromAuth: (returnTo: unknown) => void;
 };
 
 export const GUEST_STORAGE_KEY = "lappka:auth:guest";
@@ -30,11 +35,11 @@ export function useAuthSession() {
 // Guards actions that need an account. Returns true when the user may proceed;
 // guests get a prompt to sign in and false.
 export function useRequireAccount() {
-  const { isGuest, exitGuestMode } = useAuthSession();
-  const router = useRouter();
+  const { session, openAuth } = useAuthSession();
+  const pathname = usePathname();
 
   return useCallback((): boolean => {
-    if (!isGuest) {
+    if (hasAccount(session)) {
       return true;
     }
 
@@ -46,12 +51,11 @@ export function useRequireAccount() {
         {
           text: "Zaloguj się",
           onPress: () => {
-            exitGuestMode();
-            router.replace("/auth");
+            openAuth(getReturnPath(pathname));
           },
         },
       ],
     );
     return false;
-  }, [isGuest, exitGuestMode, router]);
+  }, [session, openAuth, pathname]);
 }

@@ -1,28 +1,52 @@
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Pressable, Text } from "react-native";
 
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Checkbox } from "@/components/Checkbox";
 import { TextField } from "@/components/TextField";
+import { supabase } from "@/lib/supabase";
+import { Alert } from "@/lib/alert";
 
 import { authStyles } from "../authStyles";
+import { authErrorMessage } from "../authErrors";
+import { authTexts } from "../authTexts";
+import { isValidEmail } from "../validation";
 
-export function LoginForm() {
+export function LoginForm({ onConfirmEmail }: { onConfirmEmail: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const isSubmitting = useRef(false);
 
-  function handleLogin() {
-    console.log("Login form data:", { email, password, rememberMe });
+  async function handleLogin() {
+    if (!isValidEmail(email) || !password) {
+      Alert.alert(authTexts.alertTitles.checkData, authTexts.validation.login);
+      return;
+    }
+    if (isSubmitting.current) return;
+
+    isSubmitting.current = true;
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) throw error;
+    } catch (error) {
+      Alert.alert(authTexts.alertTitles.loginFailed, authErrorMessage(error));
+    } finally {
+      isSubmitting.current = false;
+      setIsLoading(false);
+    }
   }
 
   return (
     <Card elevation="sm" bordered={false} style={authStyles.formCard}>
       <TextField
-        label="E-mail lub login"
+        label={authTexts.fields.email}
         icon="at-outline"
-        placeholder="np. email@gmail.com"
+        placeholder={authTexts.fields.emailPlaceholder}
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -30,9 +54,9 @@ export function LoginForm() {
         onChangeText={setEmail}
       />
       <TextField
-        label="Hasło"
+        label={authTexts.fields.password}
         icon="lock-closed-outline"
-        placeholder="••••••••"
+        placeholder={authTexts.fields.passwordPlaceholder}
         secureTextEntry
         autoCapitalize="none"
         autoComplete="current-password"
@@ -40,23 +64,21 @@ export function LoginForm() {
         onChangeText={setPassword}
       />
 
-      <View style={authStyles.optionsRow}>
-        <Checkbox
-          label="Zapamiętaj mnie"
-          checked={rememberMe}
-          onChange={setRememberMe}
-        />
-        <Pressable accessibilityRole="button">
-          <Text style={authStyles.link}>Nie pamiętasz hasła?</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onConfirmEmail}
+        style={authStyles.confirmEmailLink}
+      >
+        <Text style={authStyles.link}>{authTexts.actions.confirmEmail}</Text>
+      </Pressable>
 
       <Button
-        label="Zaloguj się"
+        label={authTexts.actions.login}
         icon="arrow-forward"
         iconPosition="end"
         size="lg"
         onPress={handleLogin}
+        loading={isLoading}
         style={authStyles.submitButton}
       />
     </Card>

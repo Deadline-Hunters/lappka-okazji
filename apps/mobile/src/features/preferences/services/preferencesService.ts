@@ -7,6 +7,7 @@ const STORAGE_KEY = "lappka.preferences.v1";
 export interface IPreferencesService {
   getPreferences(): Promise<UserPreferencesDto>;
   savePreferences(preferences: UserPreferencesDto): Promise<void>;
+  waitForPendingWrites(): Promise<void>;
 }
 
 /**
@@ -15,6 +16,8 @@ export interface IPreferencesService {
  * `supabase.from('preferences').select().eq('user_id', uid).single()` / `.upsert(...)`.
  */
 export class LocalPreferencesService implements IPreferencesService {
+  private readonly pendingWrites = new Set<Promise<void>>();
+
   async getPreferences(): Promise<UserPreferencesDto> {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
 
@@ -30,8 +33,21 @@ export class LocalPreferencesService implements IPreferencesService {
     }
   }
 
-  async savePreferences(preferences: UserPreferencesDto): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+  savePreferences(preferences: UserPreferencesDto): Promise<void> {
+    const write = AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(preferences),
+    );
+    this.pendingWrites.add(write);
+    void write.then(
+      () => this.pendingWrites.delete(write),
+      () => this.pendingWrites.delete(write),
+    );
+    return write;
+  }
+
+  async waitForPendingWrites(): Promise<void> {
+    await Promise.allSettled(this.pendingWrites);
   }
 }
 

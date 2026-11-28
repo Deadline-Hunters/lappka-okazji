@@ -9,7 +9,7 @@ export function SocialAuthButtons() {
     <>
       <View style={authStyles.divider}>
         <View style={authStyles.dividerLine} />
-        <Text style={authStyles.dividerText}>LUB KONTYNUUJ PRZEZ</Text>
+        <Text style={authStyles.dividerText}>SSO WKRÓTCE</Text>
         <View style={authStyles.dividerLine} />
       </View>
       <View style={authStyles.socialRow}>
@@ -17,12 +17,14 @@ export function SocialAuthButtons() {
           label="Google"
           icon="logo-google"
           variant="surface"
+          disabled
           style={authStyles.socialButton}
         />
         <Button
           label="Apple"
           icon="logo-apple"
           variant="dark"
+          disabled
           style={authStyles.socialButton}
         />
       </View>
