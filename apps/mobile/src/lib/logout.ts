@@ -13,6 +13,7 @@ type LogoutDependencies = {
 
 export const SESSION_OWNER_KEY = "lappka:session:owner";
 export const LOGOUT_PENDING_KEY = "lappka:session:logout-pending";
+export const RESET_PENDING = "reset";
 
 type SessionStorage = {
   getItem(key: string): Promise<string | null>;
@@ -61,6 +62,36 @@ export async function clearApplicationSession({
 
   await clearLocalData();
   return { serverSignOutFailed: Boolean(signOutError) };
+}
+
+export async function resetLocalSession({
+  markPending,
+  clearStoredSession,
+  clearLocalData,
+}: {
+  markPending(): Promise<void>;
+  clearStoredSession(): Promise<void>;
+  clearLocalData(): Promise<void>;
+}): Promise<void> {
+  await markPending();
+  await clearStoredSession();
+  await clearLocalData();
+}
+
+export function authStorageKeys(
+  keys: readonly string[],
+  sessionKey: string,
+): string[] {
+  const authKeys = new Set([sessionKey]);
+  for (const key of keys) {
+    const baseKey = key.endsWith(".encrypted")
+      ? key.slice(0, -".encrypted".length)
+      : key;
+    if (baseKey === sessionKey || baseKey.startsWith(`${sessionKey}-`)) {
+      authKeys.add(baseKey);
+    }
+  }
+  return [...authKeys];
 }
 
 export function appStorageKeys(keys: readonly string[]): string[] {

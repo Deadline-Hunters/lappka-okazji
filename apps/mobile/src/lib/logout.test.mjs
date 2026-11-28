@@ -3,10 +3,12 @@ import test from "node:test";
 
 import {
   appStorageKeys,
+  authStorageKeys,
   clearApplicationSession,
   clearLocalApplicationData,
   createMarkedSessionStorage,
   LOGOUT_PENDING_KEY,
+  resetLocalSession,
   SESSION_OWNER_KEY,
   withoutCleanupMarkers,
 } from "./logout.ts";
@@ -150,5 +152,51 @@ test("web cleanup selects application-owned data, not unrelated origin data", ()
       "lappka-other-app",
     ]),
     ["lappka.preferences.v1", "lappka:auth:guest"],
+  );
+});
+
+test("reset marks pending before removing the session and local data", async () => {
+  const calls = [];
+  await resetLocalSession({
+    markPending: async () => calls.push("mark"),
+    clearStoredSession: async () => calls.push("session"),
+    clearLocalData: async () => calls.push("data"),
+  });
+  assert.deepEqual(calls, ["mark", "session", "data"]);
+});
+
+test("reset stops and remains retryable when session removal fails", async () => {
+  const calls = [];
+  await assert.rejects(
+    resetLocalSession({
+      markPending: async () => calls.push("mark"),
+      clearStoredSession: async () => {
+        calls.push("session");
+        throw new Error("storage unavailable");
+      },
+      clearLocalData: async () => calls.push("data"),
+    }),
+    /storage unavailable/,
+  );
+  assert.deepEqual(calls, ["mark", "session"]);
+});
+
+test("reset selects only this project's session and associated auth keys", () => {
+  assert.deepEqual(
+    authStorageKeys(
+      [
+        "sb-test-auth-token.encrypted",
+        "sb-test-auth-token-code-verifier.encrypted",
+        "sb-test-auth-token-flow-123-code-verifier",
+        "sb-other-auth-token.encrypted",
+        "other-data",
+      ],
+      "sb-test-auth-token",
+    ),
+    [
+      "sb-test-auth-token",
+      "sb-test-auth-token-code-verifier",
+      "sb-test-auth-token-flow-123-code-verifier",
+    ],
   );
 });

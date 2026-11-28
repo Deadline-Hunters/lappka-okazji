@@ -5,6 +5,13 @@ import { createClient } from "@supabase/supabase-js";
 
 import { createEncryptedSessionStorage } from "./encrypted-session-storage.ts";
 import { decodeSession, encodeSession } from "./session-encoding.ts";
+import {
+  authStorageKeys,
+  clearLocalApplicationData,
+  LOGOUT_PENDING_KEY,
+  RESET_PENDING,
+  resetLocalSession,
+} from "./logout.ts";
 
 function memoryStorage() {
   const values = new Map();
@@ -112,6 +119,128 @@ test("rejects a missing key or tampered encrypted value", async () => {
   await secure.setItem("lappka.auth.key.session", await cipher.generateKey());
   await storage.setItem("session.encrypted", encrypted);
   await assert.rejects(session.getItem("session"));
+});
+
+test("reset recovers missing or invalid encryption keys and removes account data", async () => {
+  for (const corruption of ["missing", "invalid"]) {
+    const { storage, secure, session } = setup();
+    const key = "test-session";
+    await session.setItem(key, "token");
+    await session.setItem(`${key}-code-verifier`, "verifier");
+    await storage.setItem("account-data", "private");
+    if (corruption === "missing") {
+      await secure.removeItem(`lappka.auth.key.${key}`);
+    } else {
+      await secure.setItem(
+        `lappka.auth.key.${key}`,
+        await cipher.generateKey(),
+      );
+    }
+    await assert.rejects(session.getItem(key));
+
+    await resetLocalSession({
+      markPending: () => storage.setItem(LOGOUT_PENDING_KEY, RESET_PENDING),
+      clearStoredSession: async () => {
+        for (const authKey of authStorageKeys(
+          [...storage.values.keys()],
+          key,
+        )) {
+          await session.removeItem(authKey);
+        }
+      },
+      clearLocalData: () =>
+        clearLocalApplicationData({
+          waitForWrites: async () => {},
+          clearStorage: async () => {
+            for (const storageKey of storage.values.keys()) {
+              if (storageKey !== LOGOUT_PENDING_KEY) {
+                await storage.removeItem(storageKey);
+              }
+            }
+          },
+          clearMarkers: () => storage.removeItem(LOGOUT_PENDING_KEY),
+        }),
+    });
+
+    assert.equal(await session.getItem(key), null);
+    assert.equal(storage.values.size, 0);
+    assert.equal(secure.values.size, 0);
+    await session.setItem(key, "new session");
+    assert.equal(await session.getItem(key), "new session");
+  }
+});
+
+test("failed secure key removal preserves encrypted data for retry", async () => {
+  const { storage, secure, session } = setup();
+  await session.setItem("session", "token");
+  const remove = secure.removeItem;
+  secure.removeItem = async () => {
+    throw new Error("storage unavailable");
+  };
+  await assert.rejects(session.removeItem("session"), /unavailable/);
+  assert.ok(await storage.getItem("session.encrypted"));
+  secure.removeItem = remove;
+  await session.removeItem("session");
+  assert.equal(await storage.getItem("session.encrypted"), null);
+  assert.equal(secure.values.size, 0);
+});
+
+test("Supabase can sign in again after resetting a session that becomes corrupted", async () => {
+  const { storage, secure, session } = setup();
+  const storageKey = "test-session";
+  const newSession = {
+    access_token: "new-access-token",
+    refresh_token: "new-refresh-token",
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    expires_in: 3600,
+    token_type: "bearer",
+    user: { id: "test-user" },
+  };
+  const client = createClient("http://localhost:54321", "test-anon-key", {
+    auth: {
+      storageKey,
+      storage: session,
+      persistSession: true,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: async () =>
+        new Response(JSON.stringify(newSession), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    },
+  });
+
+  try {
+    await client.auth.initialize();
+    await new Promise((resolve) => setImmediate(resolve));
+    await session.setItem(storageKey, "old session");
+    await secure.removeItem(`lappka.auth.key.${storageKey}`);
+    await assert.rejects(
+      client.auth.getSession(),
+      /Missing session encryption key/,
+    );
+    await resetLocalSession({
+      markPending: () => storage.setItem(LOGOUT_PENDING_KEY, RESET_PENDING),
+      clearStoredSession: () => session.removeItem(storageKey),
+      clearLocalData: () => storage.removeItem(LOGOUT_PENDING_KEY),
+    });
+    assert.equal((await client.auth.getSession()).data.session, null);
+    const result = await client.auth.signInWithPassword({
+      email: "test@example.com",
+      password: "test-password",
+    });
+    assert.equal(result.error, null);
+    assert.equal(result.data.session?.user.id, "test-user");
+    assert.equal(
+      (await client.auth.getSession()).data.session?.user.id,
+      "test-user",
+    );
+  } finally {
+    await client.auth.dispose();
+  }
 });
 
 test("serializes concurrent writes and removal", async () => {

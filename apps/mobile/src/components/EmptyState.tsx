@@ -15,6 +15,7 @@ type Props = {
   // danger - loading failed; the icon turns red.
   tone?: "default" | "danger";
   action?: { label: string; onPress: () => void };
+  secondaryAction?: { label: string; onPress: () => void };
   // Wraps the message in a card (e.g. inside a scrolling profile section).
   card?: boolean;
   // Fills and centers in the available space (whole-screen states).
@@ -29,6 +30,7 @@ export function EmptyState({
   icon,
   tone = "default",
   action,
+  secondaryAction,
   card = false,
   fill = false,
   style,
@@ -54,6 +56,13 @@ export function EmptyState({
           onPress={action.onPress}
           size="sm"
           style={styles.action}
+        />
+      ) : null}
+      {secondaryAction ? (
+        <Button
+          label={secondaryAction.label}
+          onPress={secondaryAction.onPress}
+          variant="secondary"
         />
       ) : null}
     </>

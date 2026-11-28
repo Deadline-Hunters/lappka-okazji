@@ -78,9 +78,9 @@ export function createEncryptedSessionStorage(
     },
     removeItem(key) {
       return serialize(key, async () => {
+        await secureStorage.removeItem(secureKey(key));
         await storage.removeItem(key);
         await storage.removeItem(encryptedKey(key));
-        await secureStorage.removeItem(secureKey(key));
       });
     },
   };

@@ -15,7 +15,8 @@ import type { Session } from "@supabase/supabase-js";
 import { DealsInteractionProvider } from "@/features/deals/deals-interaction";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
-import { supabase } from "@/lib/supabase";
+import { authStorageKey, supabase } from "@/lib/supabase";
+import { sessionStorage } from "@/lib/session-storage";
 import { AuthSessionContext, GUEST_STORAGE_KEY } from "@/lib/auth-session";
 import {
   createAuthReturnController,
@@ -25,9 +26,12 @@ import {
 import { createTokenRefreshController } from "@/lib/token-refresh";
 import {
   appStorageKeys,
+  authStorageKeys,
   clearApplicationSession,
   clearLocalApplicationData,
   LOGOUT_PENDING_KEY,
+  RESET_PENDING,
+  resetLocalSession,
   SESSION_OWNER_KEY,
   withoutCleanupMarkers,
 } from "@/lib/logout";
@@ -67,6 +71,7 @@ function RootNavigator() {
     "idle" | "running" | "failed" | "server-warning" | "complete"
   >("idle");
   const logoutRunning = useRef(false);
+  const cleanupMode = useRef<"signout" | "local" | "reset">("signout");
   const serverSignOutFailed = useRef(false);
 
   const setGuest = useCallback((value: boolean) => {
@@ -101,27 +106,48 @@ function RootNavigator() {
     });
   }, []);
   const startCleanup = useCallback(
-    (revokeSession: boolean) => {
+    (mode: "signout" | "local" | "reset") => {
       if (logoutRunning.current) return;
       logoutRunning.current = true;
+      cleanupMode.current = mode;
       setLogoutState("running");
-      const cleanup = revokeSession
-        ? clearApplicationSession({
-            markPending: () => AsyncStorage.setItem(LOGOUT_PENDING_KEY, "1"),
-            signOut: async () => {
-              const result = await supabase.auth.signOut();
-              serverSignOutFailed.current ||= Boolean(result.error);
-              return result;
-            },
-            getSession: () => supabase.auth.getSession(),
-            clearLocalData: cleanupLocalData,
-          })
-        : cleanupLocalData();
+      const cleanup =
+        mode === "reset"
+          ? resetLocalSession({
+              markPending: () =>
+                AsyncStorage.setItem(LOGOUT_PENDING_KEY, RESET_PENDING),
+              clearStoredSession: async () => {
+                await supabase.auth.initialize();
+                const keys = authStorageKeys(
+                  await AsyncStorage.getAllKeys(),
+                  authStorageKey,
+                );
+                for (const key of keys) {
+                  await sessionStorage.removeItem(key);
+                }
+              },
+              clearLocalData: cleanupLocalData,
+            })
+          : mode === "signout"
+            ? clearApplicationSession({
+                markPending: () =>
+                  AsyncStorage.setItem(LOGOUT_PENDING_KEY, "1"),
+                signOut: async () => {
+                  const result = await supabase.auth.signOut();
+                  serverSignOutFailed.current ||= Boolean(result.error);
+                  return result;
+                },
+                getSession: () => supabase.auth.getSession(),
+                clearLocalData: cleanupLocalData,
+              })
+            : cleanupLocalData();
       void cleanup
         .then(() => {
           setSession(null);
           setIsGuest(false);
+          setLoadError(false);
           authReturn.clear();
+          if (mode === "reset") serverSignOutFailed.current = true;
           setLogoutState(
             serverSignOutFailed.current ? "server-warning" : "complete",
           );
@@ -136,7 +162,8 @@ function RootNavigator() {
     },
     [authReturn, cleanupLocalData],
   );
-  const signOut = useCallback(() => startCleanup(true), [startCleanup]);
+  const signOut = useCallback(() => startCleanup("signout"), [startCleanup]);
+  const resetSession = useCallback(() => startCleanup("reset"), [startCleanup]);
   const openAuth = useCallback(
     (returnPath: ReturnPath, mode?: "login" | "register") => {
       authReturn.markOpened();
@@ -183,8 +210,8 @@ function RootNavigator() {
     ])
       .then(async ([guestFlag, owner, pending]) => {
         if (!isMounted) return;
-        if (pending === "1") {
-          startCleanup(true);
+        if (pending === "1" || pending === RESET_PENDING) {
+          startCleanup(pending === RESET_PENDING ? "reset" : "signout");
           setIsLoading(false);
           return;
         }
@@ -197,7 +224,7 @@ function RootNavigator() {
         if (isMounted) {
           if (!authChanged) {
             if (owner === "1" && !data.session) {
-              startCleanup(false);
+              startCleanup("local");
               setIsLoading(false);
               return;
             }
@@ -232,7 +259,7 @@ function RootNavigator() {
         setSession(session);
         if (event === "SIGNED_OUT" && !logoutRunning.current) {
           setIsGuest(false);
-          startCleanup(false);
+          startCleanup("local");
         }
         if (session) {
           // A real sign-in replaces guest mode.
@@ -287,9 +314,16 @@ function RootNavigator() {
         fill
         tone="danger"
         icon="alert-circle-outline"
-        title="Nie udało się zakończyć wylogowania"
-        message="Nie udało się wyczyścić sesji lub danych lokalnych. Sprawdź połączenie i spróbuj ponownie."
-        action={{ label: "Spróbuj ponownie", onPress: signOut }}
+        title={
+          cleanupMode.current === "reset"
+            ? "Nie udało się zresetować sesji"
+            : "Nie udało się zakończyć wylogowania"
+        }
+        message="Nie udało się wyczyścić sesji lub danych lokalnych. Spróbuj ponownie."
+        action={{
+          label: "Spróbuj ponownie",
+          onPress: () => startCleanup(cleanupMode.current),
+        }}
       />
     );
   }
@@ -317,10 +351,14 @@ function RootNavigator() {
         tone="danger"
         icon="alert-circle-outline"
         title="Nie udało się wczytać sesji"
-        message="Sprawdź połączenie i spróbuj ponownie."
+        message="Sprawdź połączenie i spróbuj ponownie. Jeśli problem nie ustępuje, zresetuj sesję, aby zalogować się ponownie. Lokalne dane konta zostaną usunięte."
         action={{
           label: "Spróbuj ponownie",
           onPress: () => setLoadAttempt((attempt) => attempt + 1),
+        }}
+        secondaryAction={{
+          label: "Zresetuj sesję",
+          onPress: resetSession,
         }}
       />
     );
