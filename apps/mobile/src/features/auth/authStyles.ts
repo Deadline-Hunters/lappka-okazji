@@ -60,6 +60,8 @@ export const authStyles = StyleSheet.create({
   confirmEmailLink: {
     alignSelf: "flex-end",
     paddingVertical: spacing.xs,
+    minHeight: 44,
+    justifyContent: "center",
   },
   link: { fontSize: 13, fontWeight: "700", color: colors.primaryDark },
   submitButton: { marginTop: spacing.sm },
