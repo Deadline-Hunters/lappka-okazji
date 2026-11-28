@@ -64,8 +64,10 @@ type Props = {
   selectedMarkerId: string | null;
   camera: CameraTarget | null;
   onMarkerPress: (id: string) => Promise<void>;
-  onMapPress: () => Promise<void>;
+  onMapPress: (coords?: LatLng) => Promise<void>;
   onOpenUrl: (url: string) => Promise<void>;
+  pickedLocation?: LatLng | null;
+  onPickedLocationChange?: (location: LatLng) => Promise<void>;
   dom?: DOMProps;
 };
 
@@ -74,9 +76,12 @@ type Props = {
 // The scale on selection happens on .marker__body, because MapLibre positions .marker itself with a transform.
 // Don't set "position" on .marker / .me - MapLibre makes markers absolute; overriding it stacks them in the
 // page flow and every pin ends up shifted down by the ones before it.
+// One layout for both hosts: the WebView root fills the screen on native, while RN Web gives
+// the Step 2 host View `position: relative`, so the absolutely positioned map fills that view.
 const CSS = `
   html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-  .map { position: fixed; inset: 0; }
+  #root { position: relative; }
+  .map { position: absolute; inset: 0; }
   .marker { width: 40px; height: 48px; cursor: pointer; }
   .marker--selected { z-index: 2; }
   .marker__body {
@@ -116,6 +121,20 @@ const CSS = `
     font: 600 11px/1.3 -apple-system, system-ui, sans-serif; white-space: nowrap;
     box-shadow: 0 1px 4px rgba(0,0,0,.25);
   }
+  /* Draggable pin for picking deal location */
+  .picked-pin { width: 44px; height: 52px; cursor: grab; z-index: 10; }
+  .picked-pin:active { cursor: grabbing; }
+  .picked-pin__body {
+    position: absolute; inset: 0; transform-origin: 50% 100%; transition: transform .15s ease-out;
+  }
+  .picked-pin:active .picked-pin__body { transform: scale(1.15); }
+  .picked-pin__head {
+    position: absolute; top: 0; left: 0; box-sizing: border-box; width: 44px; height: 44px;
+    border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    background: #d2733a; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .picked-pin__icon { transform: rotate(45deg); font-size: 19px; line-height: 1; }
   @keyframes pulse { from { transform: scale(.6); opacity: .8; } to { transform: scale(1.6); opacity: 0; } }
 `;
 
@@ -166,6 +185,26 @@ function createUserElement() {
   return root;
 }
 
+function createPickedLocationElement() {
+  const root = document.createElement("div");
+  root.className = "picked-pin";
+
+  const body = document.createElement("div");
+  body.className = "picked-pin__body";
+  root.appendChild(body);
+
+  const head = document.createElement("div");
+  head.className = "picked-pin__head";
+  body.appendChild(head);
+
+  const icon = document.createElement("span");
+  icon.className = "picked-pin__icon";
+  icon.textContent = "📍";
+  head.appendChild(icon);
+
+  return root;
+}
+
 export default function DealsMap({
   initialCenter,
   initialZoom = 15,
@@ -176,6 +215,8 @@ export default function DealsMap({
   onMarkerPress,
   onMapPress,
   onOpenUrl,
+  pickedLocation,
+  onPickedLocationChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Map kept in state (not a ref) so the marker/camera effects run once MapLibre has loaded.
@@ -185,10 +226,21 @@ export default function DealsMap({
     new Map<string, { marker: maplibregl.Marker; element: HTMLElement }>(),
   );
   const userMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const pickedMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   // Callbacks kept in a ref so the map handlers don't need re-binding on every render.
-  const callbacks = useRef({ onMarkerPress, onMapPress, onOpenUrl });
-  callbacks.current = { onMarkerPress, onMapPress, onOpenUrl };
+  const callbacks = useRef({
+    onMarkerPress,
+    onMapPress,
+    onOpenUrl,
+    onPickedLocationChange,
+  });
+  callbacks.current = {
+    onMarkerPress,
+    onMapPress,
+    onOpenUrl,
+    onPickedLocationChange,
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -222,11 +274,20 @@ export default function DealsMap({
         created.on("click", (event) => {
           // Marker clicks are handled by the marker itself.
           if (
-            (event.originalEvent.target as Element | null)?.closest?.(".marker")
+            (event.originalEvent.target as Element | null)?.closest?.(
+              ".marker",
+            ) ||
+            (event.originalEvent.target as Element | null)?.closest?.(
+              ".picked-pin",
+            )
           ) {
             return;
           }
-          void callbacks.current.onMapPress();
+          const coords = {
+            latitude: event.lngLat.lat,
+            longitude: event.lngLat.lng,
+          };
+          void callbacks.current.onMapPress(coords);
         });
         created.on("error", (event) => {
           console.warn(
@@ -235,15 +296,15 @@ export default function DealsMap({
           );
         });
 
-        const map = created;
+        const mapInstance = created;
         // The style shows English names by default ("Krakow", "Cloth Hall") - we want Polish ones.
-        map.on("style.load", () => {
-          for (const layer of map.getStyle().layers) {
+        mapInstance.on("style.load", () => {
+          for (const layer of mapInstance.getStyle().layers) {
             if (
               layer.type === "symbol" &&
-              map.getLayoutProperty(layer.id, "text-field")
+              mapInstance.getLayoutProperty(layer.id, "text-field")
             ) {
-              map.setLayoutProperty(layer.id, "text-field", [
+              mapInstance.setLayoutProperty(layer.id, "text-field", [
                 "coalesce",
                 ["get", "name:pl"],
                 ["get", "name"],
@@ -251,11 +312,12 @@ export default function DealsMap({
             }
           }
         });
+
         // Some icons referenced by the OpenFreeMap style are missing from its sprite - add a blank image
         // so the logs aren't flooded with warnings.
-        map.on("styleimagemissing", (event) => {
-          if (!map.hasImage(event.id)) {
-            map.addImage(event.id, {
+        mapInstance.on("styleimagemissing", (event) => {
+          if (!mapInstance.hasImage(event.id)) {
+            mapInstance.addImage(event.id, {
               width: 1,
               height: 1,
               data: new Uint8Array(4),
@@ -302,6 +364,45 @@ export default function DealsMap({
       element.classList.toggle("marker--selected", id === selectedMarkerId);
     });
   }, [map, markers, selectedMarkerId]);
+
+  // Handle picked draggable location pin
+  useEffect(() => {
+    if (!map || !lib) return;
+
+    if (!pickedLocation) {
+      pickedMarkerRef.current?.remove();
+      pickedMarkerRef.current = null;
+      return;
+    }
+
+    const lngLat: [number, number] = [
+      pickedLocation.longitude,
+      pickedLocation.latitude,
+    ];
+
+    if (!pickedMarkerRef.current) {
+      const element = createPickedLocationElement();
+      const marker = new lib.Marker({
+        element,
+        anchor: "bottom",
+        draggable: true,
+      })
+        .setLngLat(lngLat)
+        .addTo(map);
+
+      marker.on("dragend", () => {
+        const coords = marker.getLngLat();
+        void callbacks.current.onPickedLocationChange?.({
+          latitude: coords.lat,
+          longitude: coords.lng,
+        });
+      });
+
+      pickedMarkerRef.current = marker;
+    } else {
+      pickedMarkerRef.current.setLngLat(lngLat);
+    }
+  }, [map, lib, pickedLocation]);
 
   useEffect(() => {
     if (!map || !lib) return;
